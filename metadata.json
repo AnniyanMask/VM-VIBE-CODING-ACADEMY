@@ -1,0 +1,6 @@
+{
+  "name": "VM Vibe Coding Academy",
+  "description": "Premium coding and AI academy for children aged 10-17 in Malaysia. Hands-on projects, small classes, and instructor-led learning.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
