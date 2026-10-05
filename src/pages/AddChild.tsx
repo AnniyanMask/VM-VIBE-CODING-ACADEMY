@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/layout/Header';
-import StudentForm from '../components/parent/StudentForm';
+import ChildForm from '../components/parent/ChildForm';
 import { ArrowLeft } from 'lucide-react';
 
-export default function AddStudent() {
+export default function AddChild() {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ export default function AddStudent() {
           </button>
 
           <div className="bg-white rounded-[40px] shadow-2xl shadow-slate-200 border border-slate-100 overflow-hidden p-8 md:p-12">
-            <StudentForm 
+            <ChildForm 
               parentId={userId} 
               onSuccess={() => navigate('/dashboard')} 
             />

@@ -69,8 +69,20 @@ const menuSections: MenuSection[] = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    async function getProfile() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+        setProfile(data);
+      }
+    }
+    getProfile();
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -169,11 +181,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right mr-4">
-              <p className="text-xs font-black text-slate-900">Administrator</p>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Master Access</p>
+              <p className="text-xs font-black text-slate-900">{profile?.full_name || 'Administrator'}</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{profile?.role === 'admin' ? 'Master Access' : 'Staff Access'}</p>
             </div>
-            <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
-              <UserCircle className="w-6 h-6" />
+            <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 font-black text-xs uppercase">
+              {profile?.full_name?.[0] || <UserCircle className="w-6 h-6" />}
             </div>
           </div>
         </header>

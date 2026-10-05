@@ -19,10 +19,16 @@ export default function AdminUsers() {
   }, []);
 
   async function fetchData() {
-    setLoading(true);
-    const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-    setData(data || []);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      setData(data || []);
+    } catch (err: any) {
+      alert(`Error fetching users: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const showMessage = (type: 'success' | 'error', text: string) => {
@@ -39,7 +45,14 @@ export default function AdminUsers() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await supabase.from('profiles').update(formData).eq('id', editingId);
+      const { error } = await supabase.from('profiles').update({
+        full_name: formData.full_name,
+        phone: formData.phone,
+        role: formData.role
+      }).eq('id', editingId);
+      
+      if (error) throw error;
+      
       showMessage('success', 'User profile updated');
       setIsModalOpen(false);
       fetchData();
@@ -66,17 +79,21 @@ export default function AdminUsers() {
       )}
 
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h3 className="text-lg font-black text-slate-900 tracking-tight">Application Profiles</h3>
+          <p className="text-xs text-slate-500 font-medium">Manage user roles and contact info. Note: Authentication (email/password) is managed via Supabase Auth.</p>
+        </div>
         <div className="flex-1 relative w-full md:max-w-md">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
           <input 
             type="text"
             placeholder="Search by name or email..."
-            className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium"
+            className="w-full pl-12 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-sm"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
-        <button onClick={fetchData} className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-500 hover:bg-slate-50 transition-all shadow-sm">
+        <button onClick={fetchData} className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 transition-all shadow-sm">
           <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
         </button>
       </header>
@@ -84,24 +101,24 @@ export default function AdminUsers() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
       ) : (
-        <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden text-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">User Profile</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Role / Contact</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Joined</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">User Profile</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Role / Contact</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Joined</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {filtered.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
-                          <UserCircle className="w-6 h-6" />
+                  <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group text-sm">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 font-bold text-xs uppercase">
+                          {item.full_name?.[0] || <UserCircle className="w-5 h-5" />}
                         </div>
                         <div>
                           <p className="font-bold text-slate-900">{item.full_name || 'Anonymous'}</p>
@@ -109,27 +126,27 @@ export default function AdminUsers() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
-                      <div className="space-y-2">
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-1.5">
                         <span className={cn(
-                          "px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest",
+                          "px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest w-fit",
                           item.role === 'admin' ? "bg-rose-100 text-rose-600" :
                           item.role === 'student' ? "bg-indigo-100 text-indigo-600" :
                           "bg-blue-100 text-blue-600"
                         )}>
                           {item.role}
                         </span>
-                        <p className="text-xs text-slate-500 flex items-center gap-1.5"><Phone className="w-3 h-3" />{item.phone || '-'}</p>
+                        <p className="text-xs text-slate-500 flex items-center gap-1.5 font-medium"><Phone className="w-3 h-3" />{item.phone || '-'}</p>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-6 py-4">
                       <p className="text-xs text-slate-500 font-medium flex items-center gap-2">
                         <Calendar className="w-3.5 h-3.5 text-slate-300" />
                         {new Date(item.created_at).toLocaleDateString()}
                       </p>
                     </td>
-                    <td className="px-8 py-6 text-right">
-                      <button onClick={() => handleEdit(item)} className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-blue-600 hover:bg-blue-50 transition-all"><Edit3 className="w-4 h-4" /></button>
+                    <td className="px-6 py-4 text-right">
+                      <button onClick={() => handleEdit(item)} className="p-2 bg-slate-50 text-slate-400 rounded-lg hover:text-blue-600 hover:bg-blue-50 transition-all"><Edit3 className="w-4 h-4" /></button>
                     </td>
                   </tr>
                 ))}

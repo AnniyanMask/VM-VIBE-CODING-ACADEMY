@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, logActivity } from '../lib/supabase';
 import { 
   Plus, Trash2, Edit3, Check, X, RefreshCw, Loader2, BookOpen, Clock, Calendar, Save, AlertCircle
 } from 'lucide-react';
@@ -26,10 +26,16 @@ export default function AdminCourses() {
   }, []);
 
   async function fetchData() {
-    setLoading(true);
-    const { data } = await supabase.from('courses').select('*').order('created_at', { ascending: false });
-    setData(data || []);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.from('courses').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      setData(data || []);
+    } catch (err: any) {
+      alert(`Error fetching courses: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const showMessage = (type: 'success' | 'error', text: string) => {
@@ -61,10 +67,28 @@ export default function AdminCourses() {
     e.preventDefault();
     try {
       if (editingId) {
-        await supabase.from('courses').update(formData).eq('id', editingId);
+        const { error } = await supabase.from('courses').update(formData).eq('id', editingId);
+        if (error) throw error;
+        
+        await logActivity({
+          action: 'update_course',
+          entity_type: 'courses',
+          entity_id: editingId,
+          new_value: formData
+        });
+        
         showMessage('success', 'Updated successfully');
       } else {
-        await supabase.from('courses').insert(formData);
+        const { data, error } = await supabase.from('courses').insert(formData).select().single();
+        if (error) throw error;
+
+        await logActivity({
+          action: 'create_course',
+          entity_type: 'courses',
+          entity_id: data.id,
+          new_value: formData
+        });
+
         showMessage('success', 'Created successfully');
       }
       setIsModalOpen(false);
@@ -76,7 +100,16 @@ export default function AdminCourses() {
 
   const toggleActive = async (item: any) => {
     try {
-      await supabase.from('courses').update({ is_active: !item.is_active }).eq('id', item.id);
+      const { error } = await supabase.from('courses').update({ is_active: !item.is_active }).eq('id', item.id);
+      if (error) throw error;
+      
+      await logActivity({
+        action: 'toggle_course_visibility',
+        entity_type: 'courses',
+        entity_id: item.id,
+        new_value: { is_active: !item.is_active }
+      });
+
       fetchData();
       showMessage('success', 'Status updated');
     } catch (err: any) {
@@ -85,7 +118,7 @@ export default function AdminCourses() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {message && (
         <div className={cn(
           "fixed top-8 right-8 z-[100] px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-right-4 duration-300",
@@ -96,16 +129,17 @@ export default function AdminCourses() {
         </div>
       )}
 
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
         <div>
-          <p className="text-slate-500 text-sm font-medium">Manage your academy curriculum and class structure.</p>
+          <h3 className="text-lg font-black text-slate-900 tracking-tight">Courses Management</h3>
+          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Academy Curriculum</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={fetchData} className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-500 hover:bg-slate-50 transition-all shadow-sm">
-            <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
+          <button onClick={fetchData} className="p-2 bg-white border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 transition-all shadow-sm">
+            <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
           </button>
-          <button onClick={handleAdd} className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-2xl font-black shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all uppercase text-xs tracking-widest">
-            <Plus className="w-5 h-5" /> Add New Course
+          <button onClick={handleAdd} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl font-black shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all uppercase text-[10px] tracking-widest">
+            <Plus className="w-4 h-4" /> Add Course
           </button>
         </div>
       </header>
@@ -113,50 +147,50 @@ export default function AdminCourses() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
       ) : (
-        <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden text-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Course Name</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Structure</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Course Name</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Structure</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-slate-50 text-xs">
                 {data.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
-                          <BookOpen className="w-5 h-5" />
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
+                          <BookOpen className="w-4.5 h-4.5" />
                         </div>
                         <div>
                           <p className="font-bold text-slate-900">{item.name}</p>
-                          <p className="text-[10px] text-slate-400 font-mono">{item.id.slice(0, 8)}</p>
+                          <p className="text-[9px] text-slate-400 font-mono tracking-tighter">{item.id.slice(0, 8)}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
-                      <div className="flex flex-wrap gap-3">
-                        <span className="px-2 py-1 bg-slate-100 text-slate-600 text-[10px] font-black uppercase rounded tracking-widest flex items-center gap-1.5"><Calendar className="w-3 h-3" />{item.duration_weeks} Weeks</span>
-                        <span className="px-2 py-1 bg-slate-100 text-slate-600 text-[10px] font-black uppercase rounded tracking-widest flex items-center gap-1.5"><Clock className="w-3 h-3" />{item.class_duration_minutes} Mins</span>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-1">
+                        <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-[8px] font-black uppercase rounded tracking-widest flex items-center gap-1"><Calendar className="w-2.5 h-2.5" />{item.duration_weeks} Weeks</span>
+                        <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-[8px] font-black uppercase rounded tracking-widest flex items-center gap-1"><Clock className="w-2.5 h-2.5" />{item.class_duration_minutes} Mins</span>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-4 py-3">
                       <button 
                         onClick={() => toggleActive(item)}
                         className={cn(
-                          "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
+                          "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all",
                           item.is_active ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100" : "bg-slate-100 text-slate-400 hover:bg-slate-200"
                         )}
                       >
                         {item.is_active ? 'Active' : 'Hidden'}
                       </button>
                     </td>
-                    <td className="px-8 py-6 text-right space-x-2">
-                      <button onClick={() => handleEdit(item)} className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-blue-600 hover:bg-blue-50 transition-all"><Edit3 className="w-4 h-4" /></button>
+                    <td className="px-6 py-4 text-right">
+                      <button onClick={() => handleEdit(item)} className="p-2 bg-slate-50 text-slate-400 rounded-lg hover:text-blue-600 hover:bg-blue-50 transition-all"><Edit3 className="w-4 h-4" /></button>
                     </td>
                   </tr>
                 ))}

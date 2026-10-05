@@ -51,10 +51,14 @@ export default function AdminRegistrations() {
   }
 
   async function updateStatus(id: string, status: Registration['status']) {
-    const { error } = await supabase.from('registrations').update({ status }).eq('id', id);
-    if (!error) {
+    try {
+      const { error } = await supabase.from('registrations').update({ status }).eq('id', id);
+      if (error) throw error;
+      
       setRegistrations(registrations.map(r => r.id === id ? { ...r, status } : r));
       if (selectedReg?.id === id) setSelectedReg({ ...selectedReg, status });
+    } catch (err: any) {
+      alert(`Error updating status: ${err.message}`);
     }
   }
 
@@ -144,7 +148,7 @@ export default function AdminRegistrations() {
         <div className="grid grid-cols-1 gap-4">
           {filtered.map((reg) => (
             <div key={reg.id} className={cn(
-              "bg-white p-6 rounded-[32px] border transition-all group",
+              "bg-white p-5 rounded-2xl border transition-all group",
               selectedReg?.id === reg.id ? "border-blue-500 ring-4 ring-blue-50" : "border-slate-100 hover:border-slate-200"
             )}>
               <div className="flex flex-col md:flex-row justify-between gap-8">

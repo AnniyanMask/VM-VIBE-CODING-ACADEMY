@@ -87,14 +87,14 @@ export default function Requests() {
             <div className="bg-white rounded-[40px] p-8 border border-slate-100 shadow-2xl animate-in zoom-in-95 duration-200">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Select Student</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Select Child</label>
                   <select 
                     required
                     className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500"
                     value={formData.registration_id}
                     onChange={e => setFormData({ ...formData, registration_id: e.target.value })}
                   >
-                    <option value="">Choose student</option>
+                    <option value="">Choose child</option>
                     {registrations.map(r => <option key={r.id} value={r.id}>{r.student_name}</option>)}
                   </select>
                 </div>

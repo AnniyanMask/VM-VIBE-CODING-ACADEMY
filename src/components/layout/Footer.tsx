@@ -46,7 +46,7 @@ export default function Footer() {
             <ul className="space-y-4">
               <li><a href="#course" className="hover:text-blue-400 transition-colors">Course Syllabus</a></li>
               <li><a href="#schedule" className="hover:text-blue-400 transition-colors">Class Schedule</a></li>
-              <li><a href="#faq" className="hover:text-blue-400 transition-colors">Common Questions</a></li>
+              <li><a href="/faq" className="hover:text-blue-400 transition-colors">Common Questions</a></li>
               <li><a href="/register" className="hover:text-blue-400 transition-colors">Register Now</a></li>
             </ul>
           </div>
@@ -81,8 +81,8 @@ export default function Footer() {
                 &copy; {new Date().getFullYear()} VM Vibe Academy. All rights reserved.
               </p>
               <div className="mt-2 flex gap-4 text-xs">
-                <a href="#contact" className="hover:text-white">Privacy Policy</a>
-                <a href="#contact" className="hover:text-white">Terms of Service</a>
+                <a href="/privacy-policy" className="hover:text-white">Privacy Policy</a>
+                <a href="/terms-of-service" className="hover:text-white">Terms of Service</a>
               </div>
             </div>
           </div>

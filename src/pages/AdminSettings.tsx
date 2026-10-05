@@ -21,14 +21,22 @@ export default function AdminSettings() {
   }, []);
 
   async function fetchData() {
-    setLoading(true);
-    const [settingsRes, accountsRes] = await Promise.all([
-      supabase.from('site_settings').select('*').order('key', { ascending: true }),
-      supabase.from('payment_accounts').select('*').order('sort_order', { ascending: true })
-    ]);
-    setData(settingsRes.data || []);
-    setAccounts(accountsRes.data || []);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const [settingsRes, accountsRes] = await Promise.all([
+        supabase.from('site_settings').select('*').order('key', { ascending: true }),
+        supabase.from('payment_accounts').select('*').order('sort_order', { ascending: true })
+      ]);
+      if (settingsRes.error) throw settingsRes.error;
+      if (accountsRes.error) throw accountsRes.error;
+
+      setData(settingsRes.data || []);
+      setAccounts(accountsRes.data || []);
+    } catch (err: any) {
+      alert(`Error fetching settings: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const getSummary = (item: any) => {
@@ -53,7 +61,9 @@ export default function AdminSettings() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await supabase.from('site_settings').update({ value: formData.value }).eq('key', editingId);
+      const { error } = await supabase.from('site_settings').update({ value: formData.value }).eq('key', editingId);
+      if (error) throw error;
+      
       showMessage('success', 'Settings updated');
       setIsModalOpen(false);
       fetchData();
@@ -86,27 +96,27 @@ export default function AdminSettings() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Virtual Card for Bank Accounts */}
-          <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden group hover:border-blue-200 transition-all flex flex-col">
-            <div className="p-8 space-y-4 flex-1">
-              <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all">
-                <DollarSign className="w-6 h-6" />
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden group hover:border-blue-200 transition-all flex flex-col">
+            <div className="p-6 space-y-3 flex-1">
+              <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all">
+                <DollarSign className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">Bank & Payment</h3>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Fee Collection</p>
+                <h3 className="text-lg font-black text-slate-900 tracking-tight">Bank & Payment</h3>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Fee Collection</p>
               </div>
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Primary Account</p>
-                 <p className="text-[10px] text-slate-500 font-bold uppercase">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Primary Account</p>
+                 <p className="text-[9px] text-slate-500 font-bold uppercase">
                    {accounts[0] ? `${accounts[0].bank_name} ...${accounts[0].account_number.slice(-4)}` : 'No accounts configured'}
                  </p>
               </div>
             </div>
             <button 
               onClick={() => navigate('/admin/payment-accounts')}
-              className="w-full py-5 bg-slate-50 text-slate-900 font-black text-xs uppercase tracking-[0.2em] border-t border-slate-100 hover:bg-slate-900 hover:text-white transition-all"
+              className="w-full py-3.5 bg-slate-50 text-slate-900 font-black text-[10px] uppercase tracking-widest border-t border-slate-100 hover:bg-slate-900 hover:text-white transition-all"
             >
               Configure
             </button>
@@ -124,25 +134,25 @@ export default function AdminSettings() {
             if (item.key === 'bank_info') return null;
 
             return (
-              <div key={item.key} className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden group hover:border-blue-200 transition-all flex flex-col">
-                <div className="p-8 space-y-4 flex-1">
-                  <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all">
-                    <Icon className="w-6 h-6" />
+              <div key={item.key} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden group hover:border-blue-200 transition-all flex flex-col">
+                <div className="p-6 space-y-3 flex-1">
+                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all">
+                    <Icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-black text-slate-900 tracking-tight capitalize">{item.key.replace('_', ' ')}</h3>
-                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">System Setting</p>
+                    <h3 className="text-lg font-black text-slate-900 tracking-tight capitalize">{item.key.replace('_', ' ')}</h3>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">System Setting</p>
                   </div>
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Current State</p>
-                     <p className="text-[10px] text-slate-500 font-bold uppercase">
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Current State</p>
+                     <p className="text-[9px] text-slate-500 font-bold uppercase truncate">
                        {getSummary(item)}
                      </p>
                   </div>
                 </div>
                 <button 
                   onClick={() => handleEdit(item)}
-                  className="w-full py-5 bg-slate-50 text-slate-900 font-black text-xs uppercase tracking-[0.2em] border-t border-slate-100 hover:bg-slate-900 hover:text-white transition-all"
+                  className="w-full py-3.5 bg-slate-50 text-slate-900 font-black text-[10px] uppercase tracking-widest border-t border-slate-100 hover:bg-slate-900 hover:text-white transition-all"
                 >
                   Configure
                 </button>

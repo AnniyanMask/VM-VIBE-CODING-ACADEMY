@@ -31,39 +31,50 @@ export default function FAQ() {
     <section className="py-24 bg-white" id="faq">
       <div className="container mx-auto px-4 md:px-6">
         <div className="max-w-3xl mx-auto text-center mb-16 space-y-4">
-          <h2 className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight">FAQ</h2>
-          <p className="text-lg text-slate-600">Everything you need to know before joining.</p>
+          <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight">Support & Information</h2>
+          <p className="text-lg text-slate-600">Common enquiries regarding our pedagogical approach and enrollment.</p>
         </div>
 
         <div className="max-w-2xl mx-auto space-y-4">
-          {faqs.map((faq, index) => (
+          {faqs.slice(0, 5).map((faq, index) => (
             <div 
               key={faq.id}
-              className={`border rounded-2xl transition-all ${openIndex === index ? 'border-blue-200 bg-blue-50/30' : 'border-slate-100'}`}
+              className={`border rounded-2xl transition-all ${openIndex === index ? 'border-blue-200 bg-blue-50/30' : 'border-slate-100 hover:border-slate-200'}`}
             >
               <button
-                className="w-full px-6 py-5 flex items-center justify-between text-left"
+                className="w-full px-6 py-5 flex items-center justify-between text-left group"
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
               >
-                <span className="font-bold text-slate-900">{faq.question}</span>
+                <span className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{faq.question}</span>
                 {openIndex === index ? <Minus className="w-5 h-5 text-blue-600" /> : <Plus className="w-5 h-5 text-slate-400" />}
               </button>
               {openIndex === index && (
                 <div className="px-6 pb-5 text-slate-600 text-sm leading-relaxed animate-in fade-in slide-in-from-top-2 duration-300">
-                  {faq.answer}
+                  <div className="pt-4 border-t border-slate-100">
+                    {faq.answer}
+                  </div>
                 </div>
               )}
             </div>
           ))}
         </div>
 
-        <div className="mt-16 text-center">
+        <div className="mt-12 text-center space-y-8">
           <a
-            href="/register"
-            className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-200"
+            href="/faq"
+            className="inline-flex items-center gap-2 text-blue-600 font-bold hover:gap-3 transition-all"
           >
-            Register Now
+            View all 20+ Frequently Asked Questions <ArrowRight className="w-4 h-4" />
           </a>
+          
+          <div className="pt-8">
+            <a
+              href="/register"
+              className="inline-flex items-center gap-2 bg-blue-600 text-white px-10 py-4 rounded-full text-lg font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-200"
+            >
+              Register Now
+            </a>
+          </div>
         </div>
       </div>
     </section>

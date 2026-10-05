@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase, type Payment, type PaymentSchedule } from '../lib/supabase';
 import { FileText, CheckCircle2, XCircle, AlertCircle, Loader2, ExternalLink, RefreshCw, DollarSign, Calendar, Search } from 'lucide-react';
 import { cn } from '../lib/utils';
+import ConfirmDialog from '../components/admin/ConfirmDialog';
 
 export default function AdminPayments() {
   const [schedules, setSchedules] = useState<PaymentSchedule[]>([]);
@@ -9,47 +10,71 @@ export default function AdminPayments() {
   const [processing, setProcessing] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'all' | 'pending' | 'paid'>('all');
+  const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean, scheduleId: string | null }>({ isOpen: false, scheduleId: null });
 
   useEffect(() => {
     fetchData();
   }, []);
 
   async function fetchData() {
-    setLoading(true);
-    const { data } = await supabase
-      .from('payment_schedules')
-      .select('*, profiles(full_name, email), payments(*)')
-      .order('due_date', { ascending: true });
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('payment_schedules')
+        .select('*, profiles(full_name, email), payments(*)')
+        .order('due_date', { ascending: true });
 
-    if (data) setSchedules(data as any);
-    setLoading(false);
+      if (error) throw error;
+      setSchedules(data as any);
+    } catch (err: any) {
+      alert(`Error fetching payments: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function markAsPaid(scheduleId: string) {
-    if (!confirm('Are you sure you want to mark this installment as paid manually?')) return;
-    setProcessing(scheduleId);
-    const { error } = await supabase
-      .from('payment_schedules')
-      .update({ status: 'paid' })
-      .eq('id', scheduleId);
+    try {
+      setProcessing(scheduleId);
+      const { error } = await supabase
+        .from('payment_schedules')
+        .update({ status: 'paid' })
+        .eq('id', scheduleId);
 
-    if (!error) fetchData();
-    setProcessing(null);
+      if (error) throw error;
+      fetchData();
+    } catch (err: any) {
+      alert(`Error marking as paid: ${err.message}`);
+    } finally {
+      setProcessing(null);
+    }
   }
 
-  async function updatePaymentStatus(paymentId: string, status: Payment['status']) {
-    setProcessing(paymentId);
-    const { error } = await supabase
-      .from('payments')
-      .update({ status })
-      .eq('id', paymentId);
+  async function updatePaymentStatus(paymentId: string, status: Payment['status'], scheduleId?: string | null) {
+    try {
+      setProcessing(paymentId);
+      const { error } = await supabase
+        .from('payments')
+        .update({ status })
+        .eq('id', paymentId);
 
-    if (!error) {
-      // If payment is verified, we might want to auto-mark schedule as paid if logic allows
-      // For now, keep it simple and just refresh
+      if (error) throw error;
+
+      // If payment is verified, mark schedule as paid
+      if (status === 'verified' && scheduleId) {
+        const { error: schedError } = await supabase
+          .from('payment_schedules')
+          .update({ status: 'paid' })
+          .eq('id', scheduleId);
+        if (schedError) throw schedError;
+      }
+      
       fetchData();
+    } catch (err: any) {
+      alert(`Error updating payment: ${err.message}`);
+    } finally {
+      setProcessing(null);
     }
-    setProcessing(null);
   }
 
   async function getSlipUrl(path: string) {
@@ -106,39 +131,39 @@ export default function AdminPayments() {
       ) : (
         <div className="space-y-6">
           {filtered.map((schedule) => (
-            <div key={schedule.id} className="bg-white rounded-[40px] border border-slate-100 shadow-sm overflow-hidden">
-              <div className="p-8 md:p-10 flex flex-col lg:flex-row gap-12">
-                <div className="flex-1 space-y-8">
+            <div key={schedule.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+              <div className="p-6 md:p-8 flex flex-col lg:flex-row gap-8">
+                <div className="flex-1 space-y-6">
                   <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
-                        <DollarSign className="w-7 h-7" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                        <DollarSign className="w-6 h-6" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-slate-900">{schedule.profiles?.full_name}</h3>
-                        <p className="text-sm text-slate-500">{schedule.profiles?.email}</p>
+                        <h3 className="text-lg font-bold text-slate-900">{schedule.profiles?.full_name}</h3>
+                        <p className="text-xs text-slate-500">{schedule.profiles?.email}</p>
                       </div>
                     </div>
                     <span className={cn(
-                      "px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest",
+                      "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest",
                       schedule.status === 'paid' ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"
                     )}>
                       {schedule.status}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Installment</p>
-                      <p className="font-bold text-slate-900">№ {schedule.installment_number}</p>
+                      <p className="font-bold text-slate-900 text-sm">№ {schedule.installment_number}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Amount Due</p>
-                      <p className="font-bold text-blue-600 text-lg">RM {schedule.amount}</p>
+                      <p className="font-bold text-blue-600 text-base">RM {schedule.amount}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Due Date</p>
-                      <div className="flex items-center gap-2 font-bold text-slate-900">
+                      <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
                         <Calendar className="w-4 h-4 text-slate-400" />
                         {schedule.due_date ? new Date(schedule.due_date).toLocaleDateString() : 'N/A'}
                       </div>
@@ -146,19 +171,19 @@ export default function AdminPayments() {
                   </div>
 
                   {schedule.payments && schedule.payments.length > 0 && (
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Proof of Payment</p>
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {schedule.payments.map((p) => (
-                          <div key={p.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between group">
-                            <div className="flex items-center gap-4">
-                              <button onClick={() => getSlipUrl(p.slip_url)} className="p-2 bg-white rounded-xl shadow-sm text-blue-600 hover:scale-105 transition-all">
-                                <FileText className="w-5 h-5" />
+                          <div key={p.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between group">
+                            <div className="flex items-center gap-3">
+                              <button onClick={() => getSlipUrl(p.slip_url)} className="p-2 bg-white rounded-lg shadow-sm text-blue-600 hover:scale-105 transition-all">
+                                <FileText className="w-4 h-4" />
                               </button>
                               <div>
-                                <p className="text-sm font-bold text-slate-900">Uploaded {new Date(p.created_at).toLocaleDateString()}</p>
+                                <p className="text-xs font-bold text-slate-900">Uploaded {new Date(p.created_at).toLocaleDateString()}</p>
                                 <p className={cn(
-                                  "text-[10px] font-bold uppercase tracking-widest",
+                                  "text-[9px] font-bold uppercase tracking-widest",
                                   p.status === 'verified' ? "text-emerald-500" : "text-amber-500"
                                 )}>{p.status}</p>
                               </div>
@@ -166,14 +191,14 @@ export default function AdminPayments() {
                             {p.status === 'pending' && (
                               <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                 <button 
-                                  onClick={() => updatePaymentStatus(p.id, 'verified')}
-                                  className="p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100"
+                                  onClick={() => updatePaymentStatus(p.id, 'verified', schedule.id)}
+                                  className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100"
                                 >
                                   <CheckCircle2 className="w-4 h-4" />
                                 </button>
                                 <button 
                                   onClick={() => updatePaymentStatus(p.id, 'rejected')}
-                                  className="p-2 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100"
+                                  className="p-1.5 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100"
                                 >
                                   <XCircle className="w-4 h-4" />
                                 </button>
@@ -186,25 +211,25 @@ export default function AdminPayments() {
                   )}
                 </div>
 
-                <div className="lg:w-72">
+                <div className="lg:w-64">
                   {schedule.status !== 'paid' ? (
                     <button
                       disabled={processing === schedule.id}
-                      onClick={() => markAsPaid(schedule.id)}
-                      className="w-full py-8 bg-slate-900 text-white rounded-[32px] font-bold shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all flex flex-col items-center justify-center gap-3 group"
+                      onClick={() => setConfirmDialog({ isOpen: true, scheduleId: schedule.id })}
+                      className="w-full h-full min-h-[160px] bg-slate-900 text-white rounded-2xl font-bold shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all flex flex-col items-center justify-center gap-3 group"
                     >
-                      <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center group-hover:scale-110 transition-all">
-                        <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+                      <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center group-hover:scale-110 transition-all">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                       </div>
-                      <span>Mark as Paid</span>
-                      <p className="text-[10px] text-slate-500 font-normal uppercase tracking-widest">Manual Override</p>
+                      <span className="text-sm">Mark as Paid</span>
+                      <p className="text-[9px] text-slate-500 font-normal uppercase tracking-widest">Manual Override</p>
                     </button>
                   ) : (
-                    <div className="w-full h-full p-8 border-2 border-emerald-100 rounded-[32px] flex flex-col items-center justify-center text-center gap-4 bg-emerald-50/30">
-                      <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">
-                        <CheckCircle2 className="w-8 h-8" />
+                    <div className="w-full h-full min-h-[160px] p-6 border border-emerald-100 rounded-2xl flex flex-col items-center justify-center text-center gap-3 bg-emerald-50/30">
+                      <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">
+                        <CheckCircle2 className="w-6 h-6" />
                       </div>
-                      <p className="font-bold text-emerald-900">Installment Settled</p>
+                      <p className="font-bold text-emerald-900 text-sm">Settled</p>
                     </div>
                   )}
                 </div>
@@ -218,6 +243,15 @@ export default function AdminPayments() {
           )}
         </div>
       )}
+
+      <ConfirmDialog 
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, scheduleId: null })}
+        onConfirm={() => confirmDialog.scheduleId && markAsPaid(confirmDialog.scheduleId)}
+        title="Confirm Manual Payment"
+        message="Are you sure you want to mark this installment as paid manually? This should only be done if you have verified the funds in your bank account."
+        confirmText="Mark as Paid"
+      />
     </div>
   );
 }

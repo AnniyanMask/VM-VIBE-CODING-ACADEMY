@@ -34,7 +34,10 @@ import Requests from './pages/Requests';
 import Notifications from './pages/Notifications';
 import ProfilePage from './pages/Profile';
 import Help from './pages/Help';
-import AddStudent from './pages/AddStudent';
+import AddChild from './pages/AddChild';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import FAQPage from './pages/FAQPage';
 import AdminLayout from './components/admin/AdminLayout';
 
 // Shared Admin Wrapper to check role
@@ -182,7 +185,11 @@ export default function App() {
         <Route path="/notifications" element={profile ? <Notifications /> : <Navigate to="/login" />} />
         <Route path="/profile" element={profile ? <ProfilePage /> : <Navigate to="/login" />} />
         <Route path="/help" element={profile ? <Help /> : <Navigate to="/login" />} />
-        <Route path="/dashboard/add-student" element={profile ? <AddStudent /> : <Navigate to="/login" />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/faq" element={<FAQPage />} />
+        <Route path="/add-child" element={profile ? <AddChild /> : <Navigate to="/login" />} />
+        <Route path="/dashboard/add-student" element={<Navigate to="/add-child" replace />} />
         
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

@@ -45,16 +45,6 @@ export default function Login() {
     setLoading(false);
   }
 
-  async function handleGoogleLogin() {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + '/dashboard',
-      },
-    });
-    if (error) setError(error.message);
-  }
-
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl shadow-slate-200 border border-slate-100 overflow-hidden">
@@ -131,23 +121,6 @@ export default function Login() {
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Sign In'}
             </button>
           </form>
-
-          <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-100"></div>
-            </div>
-            <div className="relative flex justify-center text-xs uppercase tracking-widest text-slate-400">
-              <span className="bg-white px-4">Or continue with</span>
-            </div>
-          </div>
-
-          <button
-            onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-3 border border-slate-200 py-3.5 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition-all"
-          >
-            <Chrome className="w-5 h-5" />
-            Google
-          </button>
 
           <p className="mt-8 text-center text-sm text-slate-500">
             Don't have an account?{' '}

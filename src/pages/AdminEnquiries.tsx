@@ -19,13 +19,19 @@ export default function AdminEnquiries() {
   }, []);
 
   async function fetchData() {
-    setLoading(true);
-    const { data } = await supabase
-      .from('enquiries')
-      .select('*')
-      .order('created_at', { ascending: false });
-    setData(data || []);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('enquiries')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setData(data || []);
+    } catch (err: any) {
+      alert(`Error fetching enquiries: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const showMessage = (type: 'success' | 'error', text: string) => {
@@ -43,7 +49,18 @@ export default function AdminEnquiries() {
     e.preventDefault();
     try {
       if (editingId) {
-        await supabase.from('enquiries').update(formData).eq('id', editingId);
+        const { error } = await supabase.from('enquiries').update({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          student_name: formData.student_name,
+          student_age: formData.student_age,
+          message: formData.message,
+          status: formData.status,
+          admin_notes: formData.admin_notes
+        }).eq('id', editingId);
+        
+        if (error) throw error;
         showMessage('success', 'Updated successfully');
       }
       setIsModalOpen(false);
@@ -59,7 +76,8 @@ export default function AdminEnquiries() {
     const nextStatus = statuses[(currentIndex + 1) % statuses.length];
     
     try {
-      await supabase.from('enquiries').update({ status: nextStatus }).eq('id', item.id);
+      const { error } = await supabase.from('enquiries').update({ status: nextStatus }).eq('id', item.id);
+      if (error) throw error;
       fetchData();
       showMessage('success', `Status updated to ${nextStatus}`);
     } catch (err: any) {
@@ -104,40 +122,40 @@ export default function AdminEnquiries() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
       ) : (
-        <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden text-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Parent / Contact</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Child Details</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Parent / Contact</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Child Details</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {filtered.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-8 py-6">
-                      <div className="space-y-1">
+                  <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group text-sm">
+                    <td className="px-6 py-4">
+                      <div className="space-y-0.5">
                         <p className="font-bold text-slate-900">{item.name}</p>
-                        <div className="flex flex-col gap-1">
-                          <a href={`mailto:${item.email}`} className="text-xs text-blue-600 flex items-center gap-1.5 hover:underline"><Mail className="w-3 h-3" />{item.email}</a>
-                          <a href={`tel:${item.phone}`} className="text-xs text-slate-500 flex items-center gap-1.5"><Phone className="w-3 h-3" />{item.phone}</a>
+                        <div className="flex flex-col gap-0.5">
+                          <a href={`mailto:${item.email}`} className="text-xs text-blue-600 flex items-center gap-1 hover:underline"><Mail className="w-3 h-3" />{item.email}</a>
+                          <a href={`tel:${item.phone}`} className="text-xs text-slate-500 flex items-center gap-1 font-medium"><Phone className="w-3 h-3" />{item.phone}</a>
                         </div>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
-                      <div className="space-y-1">
+                    <td className="px-6 py-4">
+                      <div className="space-y-0.5">
                         <p className="text-sm font-bold text-slate-700">{item.student_name || 'N/A'}</p>
-                        <p className="text-xs text-slate-400">{item.student_age ? `${item.student_age} years old` : 'Age unknown'}</p>
+                        <p className="text-xs text-slate-400 font-medium">{item.student_age ? `${item.student_age} years old` : 'Age unknown'}</p>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-6 py-4">
                       <button 
                         onClick={() => toggleStatus(item)}
                         className={cn(
-                          "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
+                          "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all",
                           item.status === 'new' ? "bg-amber-100 text-amber-600" :
                           item.status === 'incomplete' ? "bg-rose-50 text-rose-500" :
                           item.status === 'closed' ? "bg-slate-100 text-slate-400" :
@@ -147,15 +165,15 @@ export default function AdminEnquiries() {
                         {item.status.replace('_', ' ')}
                       </button>
                     </td>
-                    <td className="px-8 py-6 text-right space-x-2">
+                    <td className="px-6 py-4 text-right space-x-1">
                       <a 
                         href={`https://wa.me/${item.phone.replace(/[^0-9]/g, '')}`}
                         target="_blank"
-                        className="inline-flex p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-green-600 hover:bg-green-50 transition-all"
+                        className="inline-flex p-2 bg-slate-50 text-slate-400 rounded-lg hover:text-green-600 hover:bg-green-50 transition-all"
                       >
                         <MessageSquare className="w-4 h-4" />
                       </a>
-                      <button onClick={() => handleEdit(item)} className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-blue-600 hover:bg-blue-50 transition-all"><Edit3 className="w-4 h-4" /></button>
+                      <button onClick={() => handleEdit(item)} className="p-2 bg-slate-50 text-slate-400 rounded-lg hover:text-blue-600 hover:bg-blue-50 transition-all"><Edit3 className="w-4 h-4" /></button>
                     </td>
                   </tr>
                 ))}

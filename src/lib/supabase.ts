@@ -274,3 +274,25 @@ export type ConsentLog = {
   user_agent: string | null;
   created_at: string;
 };
+
+export async function logActivity(params: {
+  action: string;
+  entity_type: string;
+  entity_id: string;
+  old_value?: any;
+  new_value?: any;
+  description?: string;
+}) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const actor_id = session?.user?.id;
+
+  try {
+    const { error } = await supabase.from('activity_logs').insert({
+      actor_id,
+      ...params
+    });
+    if (error) console.error('Failed to log activity:', error);
+  } catch (err) {
+    console.error('Activity logging error:', err);
+  }
+}

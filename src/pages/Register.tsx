@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { User, Mail, Phone, ArrowRight, ArrowLeft, Loader2, MessageSquare, XCircle, CreditCard, CheckCircle2 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
-import StudentForm from '../components/parent/StudentForm';
+import ChildForm from '../components/parent/ChildForm';
 
 type Step = 1 | 2 | 3;
 
@@ -35,7 +35,7 @@ export default function Register() {
         if (regs && regs.length > 0) {
           navigate('/dashboard');
         } else {
-          navigate('/dashboard/add-student');
+          navigate('/add-child');
         }
       }
     }
@@ -154,7 +154,7 @@ export default function Register() {
                 <CheckCircle2 className="w-5 h-5 shrink-0" />
                 <div className="space-y-1">
                   <p className="font-bold">You already have an account.</p>
-                  <p className="text-xs">It looks like you've registered with us before. Please log in to your account to add a student.</p>
+                  <p className="text-xs">It looks like you've registered with us before. Please log in to your account to add a child.</p>
                 </div>
               </div>
               <Link to="/login" className="block w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-center hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20">
@@ -167,10 +167,10 @@ export default function Register() {
             <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
               <div className="space-y-2 text-center md:text-left">
                 <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Step 1: Parent Info</h1>
-                <p className="text-slate-500">Create your account to manage your child's learning.</p>
+                <p className="text-slate-500">Create your account to manage your children's learning.</p>
                 <div className="flex gap-2 items-center p-3 bg-blue-50 text-blue-700 rounded-xl text-[10px] font-bold mt-2 border border-blue-100">
                   <MessageSquare className="w-3 h-3 shrink-0" />
-                  You can add your child's details next. It takes about 2 minutes.
+                  You can add your children's details next. It takes about 2 minutes.
                 </div>
               </div>
 
@@ -261,7 +261,7 @@ export default function Register() {
           )}
 
           {step === 2 && userId && (
-            <StudentForm 
+            <ChildForm 
               parentId={userId}
               enquiryId={enquiryId}
               onSuccess={() => setStep(3)}

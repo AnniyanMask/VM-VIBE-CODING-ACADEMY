@@ -11,11 +11,12 @@ type Props = {
   enquiryId?: string | null;
 };
 
-export default function StudentForm({ parentId, onSuccess, onSkip, enquiryId }: Props) {
+export default function ChildForm({ parentId, onSuccess, onSkip, enquiryId }: Props) {
   const [loading, setLoading] = useState(false);
   const [slots, setSlots] = useState<any[]>([]);
   const [ageGroups, setAgeGroups] = useState<AgeGroup[]>([]);
   const [paymentPlans, setPaymentPlans] = useState<any[]>([]);
+  const [regControl, setRegControl] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [students, setStudents] = useState<any[]>([{
@@ -34,11 +35,12 @@ export default function StudentForm({ parentId, onSuccess, onSkip, enquiryId }: 
 
   useEffect(() => {
     async function fetchData() {
-      const [slotsRes, ageGroupsRes, availRes, plansRes] = await Promise.all([
+      const [slotsRes, ageGroupsRes, availRes, plansRes, controlRes] = await Promise.all([
         supabase.from('class_slots').select('*, age_groups(*), courses(*)'),
         supabase.from('age_groups').select('*'),
         supabase.from('slot_availability').select('*'),
         supabase.from('payment_plans').select('*').eq('is_active', true),
+        supabase.from('site_settings').select('value').eq('key', 'registration_control').single()
       ]);
       
       if (slotsRes.data && availRes.data) {
@@ -50,6 +52,7 @@ export default function StudentForm({ parentId, onSuccess, onSkip, enquiryId }: 
       }
       if (ageGroupsRes.data) setAgeGroups(ageGroupsRes.data);
       if (plansRes.data) setPaymentPlans(plansRes.data);
+      if (controlRes.data) setRegControl(controlRes.data.value);
     }
     fetchData();
   }, []);
@@ -96,6 +99,8 @@ export default function StudentForm({ parentId, onSuccess, onSkip, enquiryId }: 
       const selectedPlan = paymentPlans.find(p => p.id === paymentPlanId);
 
       // 1. Prepare registrations
+      const initialStatus = regControl?.status === 'waitlist' ? 'waitlist' : 'pending';
+      
       const registrations = students.map(s => ({
         parent_id: parentId,
         group_id: groupId,
@@ -108,7 +113,7 @@ export default function StudentForm({ parentId, onSuccess, onSkip, enquiryId }: 
         payment_plan_id: paymentPlanId,
         terms_accepted_at: new Date().toISOString(),
         media_consent: consents.media,
-        status: 'pending'
+        status: initialStatus
       }));
 
       const { data: regData, error: regError } = await supabase.from('registrations').insert(registrations).select();
@@ -164,7 +169,7 @@ export default function StudentForm({ parentId, onSuccess, onSkip, enquiryId }: 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
       <div className="space-y-2 text-center md:text-left">
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Student Details</h1>
+        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Child Details</h1>
         <p className="text-slate-500">Add information for each child attending the course.</p>
       </div>
 
@@ -196,7 +201,7 @@ export default function StudentForm({ parentId, onSuccess, onSkip, enquiryId }: 
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
                   <input
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-medium"
-                    placeholder="Student Name"
+                    placeholder="Child Name"
                     value={student.name}
                     onChange={e => updateStudent(index, { name: e.target.value })}
                   />
@@ -303,7 +308,7 @@ export default function StudentForm({ parentId, onSuccess, onSkip, enquiryId }: 
             <div className="relative space-y-4">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-400 font-bold uppercase tracking-widest">Summary</span>
-                <span className="bg-slate-800 px-3 py-1 rounded-full font-bold">{students.length} {students.length > 1 ? 'Students' : 'Student'}</span>
+                <span className="bg-slate-800 px-3 py-1 rounded-full font-bold">{students.length} {students.length === 1 ? 'Child' : 'Children'}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-lg font-bold">Total Amount Due</span>
@@ -325,7 +330,7 @@ export default function StudentForm({ parentId, onSuccess, onSkip, enquiryId }: 
             <label className="flex items-start gap-3 cursor-pointer group">
               <input type="checkbox" className="mt-1 w-5 h-5 rounded border-slate-300 text-blue-600" checked={consents.terms} onChange={e => setConsents({...consents, terms: e.target.checked})} />
               <span className="text-xs text-slate-500 leading-relaxed group-hover:text-slate-700 transition-colors">
-                I agree to the <a href="#" className="text-blue-600 font-bold underline">Terms of Service</a> and <a href="#" className="text-blue-600 font-bold underline">Privacy Policy</a>. I understand that my data is processed in accordance with PDPA guidelines.
+                I agree to the <a href="/terms-of-service" target="_blank" className="text-blue-600 font-bold underline">Terms of Service</a> and <a href="/privacy-policy" target="_blank" className="text-blue-600 font-bold underline">Privacy Policy</a>. I understand that my data is processed in accordance with PDPA guidelines.
               </span>
             </label>
             <label className="flex items-start gap-3 cursor-pointer group">

@@ -58,12 +58,6 @@ export default function StudentDashboard() {
               <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Student Dashboard</h1>
               <p className="text-slate-500">Ready to build something amazing, {reg?.student_name}?</p>
             </div>
-            <button 
-              onClick={handleLogout}
-              className="text-slate-600 hover:text-blue-600 font-bold transition-colors"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
           </header>
 
           {loading ? (

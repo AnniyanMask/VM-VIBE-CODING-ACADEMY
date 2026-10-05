@@ -39,56 +39,56 @@ export default function AdminLogs() {
   );
 
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="space-y-4">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
         <div className="flex-1 relative w-full md:max-w-md">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input 
             type="text"
-            placeholder="Search by action, table or actor..."
-            className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium"
+            placeholder="Search logs..."
+            className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-xs"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
-        <button onClick={fetchData} className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-500 hover:bg-slate-50 transition-all shadow-sm">
-          <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
+        <button onClick={fetchData} className="p-2 bg-white border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 transition-all shadow-sm">
+          <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
         </button>
       </header>
 
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
       ) : (
-        <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Event</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Actor</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Timestamp</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Details</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Event</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Actor</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Timestamp</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-slate-50 text-xs">
                 {filtered.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-8 py-6">
-                      <div className="space-y-1">
+                  <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group text-xs">
+                    <td className="px-4 py-3">
+                      <div className="space-y-0.5">
                         <p className="font-bold text-slate-900 capitalize">{item.action.replace('_', ' ')}</p>
-                        <p className="text-[10px] text-slate-400 font-mono uppercase tracking-tighter">{item.entity_type}</p>
+                        <p className="text-[9px] text-slate-400 font-mono uppercase tracking-tighter">{item.entity_type}</p>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
-                      <p className="text-sm font-bold text-slate-700">{item.profiles?.full_name || 'System'}</p>
+                    <td className="px-4 py-3">
+                      <p className="font-bold text-slate-700">{item.profiles?.full_name || 'System'}</p>
                     </td>
-                    <td className="px-8 py-6">
-                      <p className="text-xs text-slate-500 font-medium">
+                    <td className="px-4 py-3">
+                      <p className="text-slate-500 font-medium">
                         {format(new Date(item.created_at), 'dd MMM yyyy, HH:mm:ss')}
                       </p>
                     </td>
-                    <td className="px-8 py-6 text-right">
-                      <button onClick={() => handleView(item)} className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-blue-600 hover:bg-blue-50 transition-all"><Eye className="w-4 h-4" /></button>
+                    <td className="px-4 py-3 text-right">
+                      <button onClick={() => handleView(item)} className="p-1.5 bg-slate-50 text-slate-400 rounded-lg hover:text-blue-600 hover:bg-blue-50 transition-all"><Eye className="w-3.5 h-3.5" /></button>
                     </td>
                   </tr>
                 ))}

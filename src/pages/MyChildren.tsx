@@ -62,7 +62,7 @@ export default function MyChildren() {
             </button>
             <div>
               <h1 className="text-2xl font-black text-slate-900 tracking-tight">My Children</h1>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Enrolled Students</p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Enrolled Children</p>
             </div>
           </header>
 
@@ -151,7 +151,7 @@ export default function MyChildren() {
             ))}
 
             <button 
-              onClick={() => navigate('/dashboard/add-student')}
+              onClick={() => navigate('/add-child')}
               className="w-full py-8 border-2 border-dashed border-slate-200 rounded-[40px] text-slate-400 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50/50 transition-all flex flex-col items-center justify-center gap-2 font-bold"
             >
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">

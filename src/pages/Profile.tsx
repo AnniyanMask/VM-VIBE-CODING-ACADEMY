@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { supabase, type Profile } from '../lib/supabase';
-import { User, Phone, Mail, Lock, Shield, Camera, Loader2, Save, History, Check, X, AlertCircle } from 'lucide-react';
+import { 
+  User, Phone, Mail, Lock, Shield, Camera, Loader2, Save, History, Check, X, AlertCircle, LogOut 
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import { cn } from '../lib/utils';
@@ -253,6 +255,18 @@ export default function ProfilePage() {
             >
               {saving ? <Loader2 className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}
               Save All Changes
+            </button>
+
+            <button 
+              type="button"
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate('/login');
+              }}
+              className="w-full py-5 rounded-[24px] font-bold text-rose-500 border-2 border-rose-100 hover:bg-rose-50 transition-all flex items-center justify-center gap-2"
+            >
+              <LogOut className="w-5 h-5" />
+              Log Out
             </button>
           </form>
         </div>

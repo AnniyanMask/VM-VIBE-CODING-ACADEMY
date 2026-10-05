@@ -18,10 +18,16 @@ export default function AdminFAQs() {
   }, []);
 
   async function fetchData() {
-    setLoading(true);
-    const { data } = await supabase.from('faqs').select('*').order('sort_order', { ascending: true });
-    setData(data || []);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.from('faqs').select('*').order('sort_order', { ascending: true });
+      if (error) throw error;
+      setData(data || []);
+    } catch (err: any) {
+      alert(`Error fetching FAQs: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const showMessage = (type: 'success' | 'error', text: string) => {
@@ -45,10 +51,12 @@ export default function AdminFAQs() {
     e.preventDefault();
     try {
       if (editingId) {
-        await supabase.from('faqs').update(formData).eq('id', editingId);
+        const { error } = await supabase.from('faqs').update(formData).eq('id', editingId);
+        if (error) throw error;
         showMessage('success', 'FAQ updated');
       } else {
-        await supabase.from('faqs').insert(formData);
+        const { error } = await supabase.from('faqs').insert(formData);
+        if (error) throw error;
         showMessage('success', 'FAQ created');
       }
       setIsModalOpen(false);
@@ -60,7 +68,8 @@ export default function AdminFAQs() {
 
   const toggleActive = async (item: any) => {
     try {
-      await supabase.from('faqs').update({ is_active: !item.is_active }).eq('id', item.id);
+      const { error } = await supabase.from('faqs').update({ is_active: !item.is_active }).eq('id', item.id);
+      if (error) throw error;
       fetchData();
       showMessage('success', 'Status updated');
     } catch (err: any) {
@@ -71,7 +80,8 @@ export default function AdminFAQs() {
   const handleSoftDelete = async (id: string) => {
     if (!confirm('Are you sure you want to deactivate this FAQ?')) return;
     try {
-      await supabase.from('faqs').update({ is_active: false }).eq('id', id);
+      const { error } = await supabase.from('faqs').update({ is_active: false }).eq('id', id);
+      if (error) throw error;
       fetchData();
       showMessage('success', 'FAQ deactivated');
     } catch (err: any) {
@@ -108,41 +118,41 @@ export default function AdminFAQs() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
       ) : (
-        <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden text-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Question</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Order</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Question</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Order</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {data.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-8 py-6 max-w-md">
+                  <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group text-sm">
+                    <td className="px-6 py-4 max-w-md">
                       <p className="font-bold text-slate-900 line-clamp-1">{item.question}</p>
-                      <p className="text-xs text-slate-400 line-clamp-1 mt-1">{item.answer}</p>
+                      <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{item.answer}</p>
                     </td>
-                    <td className="px-8 py-6">
-                      <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">#{item.sort_order}</span>
+                    <td className="px-6 py-4">
+                      <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">#{item.sort_order}</span>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-6 py-4">
                       <button 
                         onClick={() => toggleActive(item)}
                         className={cn(
-                          "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
+                          "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all",
                           item.is_active ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100" : "bg-slate-100 text-slate-400 hover:bg-slate-200"
                         )}
                       >
                         {item.is_active ? 'Visible' : 'Hidden'}
                       </button>
                     </td>
-                    <td className="px-8 py-6 text-right space-x-2">
-                      <button onClick={() => handleEdit(item)} className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-blue-600 hover:bg-blue-50 transition-all"><Edit3 className="w-4 h-4" /></button>
-                      <button onClick={() => handleSoftDelete(item.id)} className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-rose-600 hover:bg-rose-50 transition-all"><Trash2 className="w-4 h-4" /></button>
+                    <td className="px-6 py-4 text-right space-x-1 text-sm">
+                      <button onClick={() => handleEdit(item)} className="p-1.5 bg-slate-50 text-slate-400 rounded-lg hover:text-blue-600 hover:bg-blue-50 transition-all"><Edit3 className="w-4 h-4" /></button>
+                      <button onClick={() => handleSoftDelete(item.id)} className="p-1.5 bg-slate-50 text-slate-400 rounded-lg hover:text-rose-600 hover:bg-rose-50 transition-all"><Trash2 className="w-4 h-4" /></button>
                     </td>
                   </tr>
                 ))}

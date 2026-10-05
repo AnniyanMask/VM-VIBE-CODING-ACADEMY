@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, logActivity } from '../lib/supabase';
 import { 
   Plus, Trash2, Edit3, Check, X, RefreshCw, Loader2, Clock, Calendar, MapPin, Users
 } from 'lucide-react';
@@ -31,22 +31,34 @@ export default function AdminSlots() {
   }, []);
 
   async function fetchLookups() {
-    const [c, a] = await Promise.all([
-      supabase.from('courses').select('id, name'),
-      supabase.from('age_groups').select('id, name')
-    ]);
-    setCourses(c.data || []);
-    setAgeGroups(a.data || []);
+    try {
+      const [c, a] = await Promise.all([
+        supabase.from('courses').select('id, name'),
+        supabase.from('age_groups').select('id, name')
+      ]);
+      if (c.error) throw c.error;
+      if (a.error) throw a.error;
+      setCourses(c.data || []);
+      setAgeGroups(a.data || []);
+    } catch (err: any) {
+      console.error(err);
+    }
   }
 
   async function fetchData() {
-    setLoading(true);
-    const { data } = await supabase
-      .from('class_slots')
-      .select('*, courses(name), age_groups(name)')
-      .order('start_date', { ascending: true });
-    setData(data || []);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('class_slots')
+        .select('*, courses(name), age_groups(name)')
+        .order('start_date', { ascending: true });
+      if (error) throw error;
+      setData(data || []);
+    } catch (err: any) {
+      alert(`Error fetching slots: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const showMessage = (type: 'success' | 'error', text: string) => {
@@ -84,10 +96,28 @@ export default function AdminSlots() {
 
     try {
       if (editingId) {
-        await supabase.from('class_slots').update(cleanData).eq('id', editingId);
+        const { error } = await supabase.from('class_slots').update(cleanData).eq('id', editingId);
+        if (error) throw error;
+        
+        await logActivity({
+          action: 'update_slot',
+          entity_type: 'class_slots',
+          entity_id: editingId,
+          new_value: cleanData
+        });
+
         showMessage('success', 'Updated successfully');
       } else {
-        await supabase.from('class_slots').insert(cleanData);
+        const { data, error } = await supabase.from('class_slots').insert(cleanData).select().single();
+        if (error) throw error;
+
+        await logActivity({
+          action: 'create_slot',
+          entity_type: 'class_slots',
+          entity_id: data.id,
+          new_value: cleanData
+        });
+
         showMessage('success', 'Created successfully');
       }
       setIsModalOpen(false);
@@ -99,7 +129,16 @@ export default function AdminSlots() {
 
   const toggleActive = async (item: any) => {
     try {
-      await supabase.from('class_slots').update({ is_active: !item.is_active }).eq('id', item.id);
+      const { error } = await supabase.from('class_slots').update({ is_active: !item.is_active }).eq('id', item.id);
+      if (error) throw error;
+      
+      await logActivity({
+        action: 'toggle_slot_active',
+        entity_type: 'class_slots',
+        entity_id: item.id,
+        new_value: { is_active: !item.is_active }
+      });
+
       fetchData();
       showMessage('success', 'Status updated');
     } catch (err: any) {
@@ -108,7 +147,7 @@ export default function AdminSlots() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {message && (
         <div className={cn(
           "fixed top-8 right-8 z-[100] px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-right-4 duration-300",
@@ -119,16 +158,17 @@ export default function AdminSlots() {
         </div>
       )}
 
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
         <div>
-          <p className="text-slate-500 text-sm font-medium">Schedule your intakes and assign students to venues.</p>
+          <h3 className="text-lg font-black text-slate-900 tracking-tight">Class Slots</h3>
+          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Schedule Management</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={fetchData} className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-500 hover:bg-slate-50 transition-all shadow-sm">
-            <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
+          <button onClick={fetchData} className="p-2 bg-white border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 transition-all shadow-sm">
+            <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
           </button>
-          <button onClick={handleAdd} className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-2xl font-black shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all uppercase text-xs tracking-widest">
-            <Plus className="w-5 h-5" /> New Class Slot
+          <button onClick={handleAdd} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl font-black shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all uppercase text-[10px] tracking-widest">
+            <Plus className="w-4 h-4" /> Add Slot
           </button>
         </div>
       </header>
@@ -136,22 +176,22 @@ export default function AdminSlots() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
       ) : (
-        <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden text-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Timing & Course</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Venue / Group</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Timing & Course</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Venue / Group</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-slate-50 text-xs">
                 {data.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-8 py-6">
-                      <div className="space-y-1">
+                    <td className="px-4 py-3">
+                      <div className="space-y-0.5">
                         <p className="font-bold text-slate-900 flex items-center gap-2">
                           <span className="text-blue-600">{item.day_of_week}s</span>
                           <span className="text-slate-300">•</span>
@@ -160,8 +200,8 @@ export default function AdminSlots() {
                         <p className="text-xs text-slate-500 font-medium">{item.courses?.name}</p>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
-                      <div className="space-y-1">
+                    <td className="px-6 py-4">
+                      <div className="space-y-0.5">
                         <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
                           <MapPin className="w-3.5 h-3.5 text-slate-400" />
                           {item.venue}
@@ -171,19 +211,19 @@ export default function AdminSlots() {
                         </p>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-6 py-4">
                       <button 
                         onClick={() => toggleActive(item)}
                         className={cn(
-                          "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
+                          "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all",
                           item.is_active ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100" : "bg-slate-100 text-slate-400 hover:bg-slate-200"
                         )}
                       >
                         {item.is_active ? 'Open' : 'Full / Off'}
                       </button>
                     </td>
-                    <td className="px-8 py-6 text-right space-x-2">
-                      <button onClick={() => handleEdit(item)} className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-blue-600 hover:bg-blue-50 transition-all"><Edit3 className="w-4 h-4" /></button>
+                    <td className="px-6 py-4 text-right">
+                      <button onClick={() => handleEdit(item)} className="p-2 bg-slate-50 text-slate-400 rounded-lg hover:text-blue-600 hover:bg-blue-50 transition-all"><Edit3 className="w-4 h-4" /></button>
                     </td>
                   </tr>
                 ))}

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, logActivity } from '../lib/supabase';
 import { 
   Plus, Trash2, Edit3, Check, X, RefreshCw, Loader2, CreditCard, Save, AlertCircle, Upload, Copy, MoveUp, MoveDown
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import ConfirmDialog from '../components/admin/ConfirmDialog';
 
 export default function AdminPaymentAccounts() {
   const [loading, setLoading] = useState(true);
@@ -24,6 +25,7 @@ export default function AdminPaymentAccounts() {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean, id: string | null }>({ isOpen: false, id: null });
 
   useEffect(() => {
     async function getSignedUrl() {
@@ -42,13 +44,19 @@ export default function AdminPaymentAccounts() {
   }, []);
 
   async function fetchData() {
-    setLoading(true);
-    const { data } = await supabase
-      .from('payment_accounts')
-      .select('*')
-      .order('sort_order', { ascending: true });
-    setData(data || []);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('payment_accounts')
+        .select('*')
+        .order('sort_order', { ascending: true });
+      if (error) throw error;
+      setData(data || []);
+    } catch (err: any) {
+      alert(`Error fetching accounts: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const showMessage = (type: 'success' | 'error', text: string) => {
@@ -110,10 +118,28 @@ export default function AdminPaymentAccounts() {
     e.preventDefault();
     try {
       if (editingId) {
-        await supabase.from('payment_accounts').update(formData).eq('id', editingId);
+        const { error } = await supabase.from('payment_accounts').update(formData).eq('id', editingId);
+        if (error) throw error;
+
+        await logActivity({
+          action: 'update_payment_account',
+          entity_type: 'payment_accounts',
+          entity_id: editingId,
+          new_value: formData
+        });
+
         showMessage('success', 'Account updated successfully');
       } else {
-        await supabase.from('payment_accounts').insert(formData);
+        const { data, error } = await supabase.from('payment_accounts').insert(formData).select().single();
+        if (error) throw error;
+
+        await logActivity({
+          action: 'create_payment_account',
+          entity_type: 'payment_accounts',
+          entity_id: data.id,
+          new_value: formData
+        });
+
         showMessage('success', 'Account created successfully');
       }
       setIsModalOpen(false);
@@ -125,7 +151,16 @@ export default function AdminPaymentAccounts() {
 
   const toggleActive = async (item: any) => {
     try {
-      await supabase.from('payment_accounts').update({ is_active: !item.is_active }).eq('id', item.id);
+      const { error } = await supabase.from('payment_accounts').update({ is_active: !item.is_active }).eq('id', item.id);
+      if (error) throw error;
+
+      await logActivity({
+        action: 'toggle_payment_account_active',
+        entity_type: 'payment_accounts',
+        entity_id: item.id,
+        new_value: { is_active: !item.is_active }
+      });
+
       fetchData();
       showMessage('success', 'Status toggled');
     } catch (err: any) {
@@ -134,9 +169,16 @@ export default function AdminPaymentAccounts() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure? This will permanently remove this bank account.')) return;
     try {
-      await supabase.from('payment_accounts').delete().eq('id', id);
+      const { error } = await supabase.from('payment_accounts').delete().eq('id', id);
+      if (error) throw error;
+
+      await logActivity({
+        action: 'delete_payment_account',
+        entity_type: 'payment_accounts',
+        entity_id: id
+      });
+
       fetchData();
       showMessage('success', 'Account deleted');
     } catch (err: any) {
@@ -145,7 +187,7 @@ export default function AdminPaymentAccounts() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {message && (
         <div className={cn(
           "fixed top-8 right-8 z-[100] px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-right-4 duration-300",
@@ -156,16 +198,17 @@ export default function AdminPaymentAccounts() {
         </div>
       )}
 
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
         <div>
-          <p className="text-slate-500 text-sm font-medium">Manage multiple bank accounts for student fee collections.</p>
+          <h3 className="text-lg font-black text-slate-900 tracking-tight">Bank Accounts</h3>
+          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Payment Endpoints</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={fetchData} className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-500 hover:bg-slate-50 transition-all shadow-sm">
-            <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
+          <button onClick={fetchData} className="p-2 bg-white border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 transition-all shadow-sm">
+            <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
           </button>
-          <button onClick={handleAdd} className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-2xl font-black shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all uppercase text-xs tracking-widest">
-            <Plus className="w-5 h-5" /> Add Bank Account
+          <button onClick={handleAdd} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl font-black shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all uppercase text-[10px] tracking-widest">
+            <Plus className="w-4 h-4" /> Add Account
           </button>
         </div>
       </header>
@@ -173,24 +216,24 @@ export default function AdminPaymentAccounts() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
       ) : (
-        <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden text-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Bank / Account</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Account Number</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Bank / Account</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Account Number</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-slate-50 text-xs">
                 {data.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
-                          <CreditCard className="w-5 h-5" />
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
+                          <CreditCard className="w-4.5 h-4.5" />
                         </div>
                         <div>
                           <p className="font-bold text-slate-900">{item.bank_name}</p>
@@ -198,24 +241,24 @@ export default function AdminPaymentAccounts() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
-                      <p className="font-mono text-sm font-bold text-slate-700 tracking-tighter">{item.account_number}</p>
-                      {item.duitnow_id && <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">DuitNow: {item.duitnow_id}</p>}
+                    <td className="px-6 py-4">
+                      <p className="font-mono text-xs font-bold text-slate-700 tracking-tighter">{item.account_number}</p>
+                      {item.duitnow_id && <p className="text-[9px] text-slate-400 uppercase tracking-widest mt-0.5">DuitNow: {item.duitnow_id}</p>}
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-6 py-4">
                       <button 
                         onClick={() => toggleActive(item)}
                         className={cn(
-                          "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
+                          "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all",
                           item.is_active ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100" : "bg-slate-100 text-slate-400 hover:bg-slate-200"
                         )}
                       >
                         {item.is_active ? 'Active' : 'Inactive'}
                       </button>
                     </td>
-                    <td className="px-8 py-6 text-right space-x-2">
-                      <button onClick={() => handleEdit(item)} className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-blue-600 hover:bg-blue-50 transition-all"><Edit3 className="w-4 h-4" /></button>
-                      <button onClick={() => handleDelete(item.id)} className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-rose-600 hover:bg-rose-50 transition-all"><Trash2 className="w-4 h-4" /></button>
+                    <td className="px-6 py-4 text-right space-x-1">
+                      <button onClick={() => handleEdit(item)} className="p-2 bg-slate-50 text-slate-400 rounded-lg hover:text-blue-600 hover:bg-blue-50 transition-all"><Edit3 className="w-4 h-4" /></button>
+                      <button onClick={() => setConfirmDialog({ isOpen: true, id: item.id })} className="p-2 bg-slate-50 text-slate-400 rounded-lg hover:text-rose-600 hover:bg-rose-50 transition-all"><Trash2 className="w-4 h-4" /></button>
                     </td>
                   </tr>
                 ))}
@@ -351,6 +394,16 @@ export default function AdminPaymentAccounts() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog 
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, id: null })}
+        onConfirm={() => confirmDialog.id && handleDelete(confirmDialog.id)}
+        title="Delete Bank Account"
+        message="Are you sure you want to delete this bank account? This action cannot be undone."
+        confirmText="Delete Account"
+        variant="danger"
+      />
     </div>
   );
 }

@@ -90,10 +90,10 @@ export default function ParentDashboard() {
                     <User className="w-8 h-8" />
                   </div>
                   <div className="space-y-2">
-                    <p className="font-bold text-slate-900">No students registered yet</p>
+                    <p className="font-bold text-slate-900">No children registered yet</p>
                     <p className="text-sm text-slate-500">Add your child's details to begin their tech journey.</p>
                   </div>
-                  <button onClick={() => navigate('/dashboard/add-student')} className="bg-blue-600 text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all">Add your child</button>
+                  <button onClick={() => navigate('/add-child')} className="bg-blue-600 text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all">Add your child</button>
                 </div>
               )}
             </div>
