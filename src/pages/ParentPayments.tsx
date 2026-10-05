@@ -74,7 +74,7 @@ export default function ParentPayments() {
 
       // Create payment record linked to schedule
       const { error: paymentError } = await supabase.from('payments').insert({
-        schedule_id: scheduleId,
+        payment_schedule_id: scheduleId,
         registration_id: schedule?.registration_id, // If specific
         parent_id: user.id,
         amount: schedule?.amount || 0,

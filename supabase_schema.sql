@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS public.class_slots (
     end_time TIME NOT NULL,
     venue TEXT NOT NULL,
     start_date DATE NOT NULL,
-    capacity INTEGER NOT NULL,
+    total_seats INTEGER NOT NULL,
     online_meeting_url TEXT,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT NOW()
@@ -194,7 +194,7 @@ CREATE TABLE IF NOT EXISTS public.payment_schedules (
 -- Payments
 CREATE TABLE IF NOT EXISTS public.payments (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    schedule_id UUID REFERENCES public.payment_schedules(id) ON DELETE CASCADE,
+    payment_schedule_id UUID REFERENCES public.payment_schedules(id) ON DELETE CASCADE,
     registration_id UUID REFERENCES public.registrations(id) ON DELETE CASCADE,
     parent_id UUID REFERENCES public.profiles(id),
     amount DECIMAL(10, 2) NOT NULL,
@@ -319,9 +319,9 @@ CREATE TABLE IF NOT EXISTS public.pending_registrations (
 CREATE OR REPLACE VIEW public.slot_availability AS
 SELECT 
     s.id as slot_id,
-    s.capacity,
+    s.total_seats,
     (SELECT count(*) FROM public.registrations r WHERE r.slot_id = s.id AND r.status IN ('pending', 'approved')) as confirmed_count,
-    s.capacity - (SELECT count(*) FROM public.registrations r WHERE r.slot_id = s.id AND r.status IN ('pending', 'approved')) as seats_left
+    s.total_seats - (SELECT count(*) FROM public.registrations r WHERE r.slot_id = s.id AND r.status IN ('pending', 'approved')) as seats_left
 FROM public.class_slots s;
 
 -- =========================================================

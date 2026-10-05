@@ -21,7 +21,7 @@ export default function AdminSlots() {
     venue: '',
     online_meeting_url: '',
     start_date: '',
-    capacity: 12,
+    total_seats: 12,
     is_active: true
   });
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -81,9 +81,9 @@ export default function AdminSlots() {
       day_of_week: 'Saturday',
       start_time: '10:00:00',
       end_time: '11:30:00',
-      venue: 'KL Center',
+      venue: '',
       start_date: new Date().toISOString().split('T')[0],
-      capacity: 12,
+      total_seats: 12,
       is_active: true 
     });
     setIsModalOpen(true);
@@ -306,8 +306,8 @@ export default function AdminSlots() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Maximum Capacity</label>
-                <input type="number" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold" value={formData.capacity || ''} onChange={e => setFormData({...formData, capacity: parseInt(e.target.value)})} required />
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Maximum Seats</label>
+                <input type="number" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold" value={formData.total_seats || ''} onChange={e => setFormData({...formData, total_seats: parseInt(e.target.value)})} required />
               </div>
 
               <label className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl cursor-pointer hover:bg-slate-100 transition-all border border-slate-200 group">

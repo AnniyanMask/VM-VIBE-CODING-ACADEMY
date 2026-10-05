@@ -50,7 +50,7 @@ export default function AdminPayments() {
     }
   }
 
-  async function updatePaymentStatus(paymentId: string, status: Payment['status'], scheduleId?: string | null) {
+  async function updatePaymentStatus(paymentId: string, status: Payment['status'], payment_schedule_id?: string | null) {
     try {
       setProcessing(paymentId);
       const { error } = await supabase
@@ -61,11 +61,11 @@ export default function AdminPayments() {
       if (error) throw error;
 
       // If payment is verified, mark schedule as paid
-      if (status === 'verified' && scheduleId) {
+      if (status === 'verified' && payment_schedule_id) {
         const { error: schedError } = await supabase
           .from('payment_schedules')
           .update({ status: 'paid' })
-          .eq('id', scheduleId);
+          .eq('id', payment_schedule_id);
         if (schedError) throw schedError;
       }
       

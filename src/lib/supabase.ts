@@ -90,7 +90,7 @@ export type ClassSlot = {
   venue: string;
   online_meeting_url: string | null;
   start_date: string;
-  capacity: number;
+  total_seats: number;
   is_active: boolean;
   age_group?: AgeGroup;
   courses?: Course;
@@ -173,7 +173,7 @@ export type SiblingRequest = {
 
 export type Payment = {
   id: string;
-  schedule_id: string | null;
+  payment_schedule_id: string | null;
   registration_id: string;
   parent_id: string;
   amount: number;

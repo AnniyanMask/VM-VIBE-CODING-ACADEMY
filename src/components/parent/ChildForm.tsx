@@ -46,7 +46,7 @@ export default function ChildForm({ parentId, onSuccess, onSkip, enquiryId }: Pr
       if (slotsRes.data && availRes.data) {
         const slotsWithAvail = slotsRes.data.map(slot => {
           const avail = availRes.data.find(a => a.slot_id === slot.id);
-          return { ...slot, seats_left: avail?.seats_left ?? slot.capacity };
+          return { ...slot, seats_left: avail?.seats_left ?? slot.total_seats };
         });
         setSlots(slotsWithAvail);
       }

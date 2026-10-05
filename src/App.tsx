@@ -59,7 +59,7 @@ export default function App() {
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
-          .single();
+          .maybeSingle();
         
         setProfile(profileData as Profile);
 
@@ -69,7 +69,7 @@ export default function App() {
             .from('pending_registrations')
             .select('*')
             .eq('email', session.user.email)
-            .single();
+            .maybeSingle();
 
           if (pending) {
             const { registrations, selectedPlan, groupId } = pending.registration_data;
@@ -127,7 +127,7 @@ export default function App() {
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
-          .single();
+          .maybeSingle();
         setProfile(data as Profile);
       } else {
         setProfile(null);

@@ -37,7 +37,7 @@ export default function AdminRegistrations() {
     const [regsRes, slotsRes, settingsRes] = await Promise.all([
       supabase.from('registrations').select('*, profiles(*), class_slots(*, courses(*), age_groups(*)), payment_plans(*), student_profile:student_user_id(*)').order('created_at', { ascending: false }),
       supabase.from('class_slots').select('*, courses(*), age_groups(*)'),
-      supabase.from('site_settings').select('value').eq('key', 'message_templates').single()
+      supabase.from('site_settings').select('value').eq('key', 'message_templates').maybeSingle()
     ]);
 
     if (regsRes.data) setRegistrations(regsRes.data as any);
