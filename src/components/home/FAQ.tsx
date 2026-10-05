@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Minus, Loader2 } from 'lucide-react';
+import { Plus, Minus, Loader2, ArrowRight } from 'lucide-react';
 import { supabase, type FAQ } from '../../lib/supabase';
 
 export default function FAQ() {

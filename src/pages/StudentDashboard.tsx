@@ -20,17 +20,31 @@ export default function StudentDashboard() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return navigate('/login');
 
-    const { data: registration } = await supabase
+    // Load registration linked directly to this student account
+    const { data: registration, error: regError } = await supabase
       .from('registrations')
       .select('*, class_slots(*, courses(*), age_groups(*))')
-      .eq('parent_id', session.user.id) // Simplified: students linked to parent account for now
-      .single();
+      .eq('student_user_id', session.user.id)
+      .maybeSingle();
+
+    if (regError) {
+      console.error('Error fetching student registration:', regError);
+      setLoading(false);
+      return;
+    }
 
     if (registration) {
       setReg(registration);
       
+      const announcementQuery = supabase.from('announcements').select('*').eq('is_active', true).in('target_role', ['all', 'student']);
+      
+      // Filter by age group if available
+      if (registration.class_slots?.age_group_id) {
+        announcementQuery.or(`target_age_group_id.is.null,target_age_group_id.eq.${registration.class_slots.age_group_id}`);
+      }
+
       const [annRes, attRes, progRes] = await Promise.all([
-        supabase.from('announcements').select('*').eq('is_active', true).in('target_role', ['all', 'student']).order('created_at', { ascending: false }).limit(2),
+        announcementQuery.order('created_at', { ascending: false }).limit(2),
         supabase.from('attendance').select('*').eq('registration_id', registration.id).order('class_date', { ascending: false }),
         supabase.from('student_progress').select('*').eq('registration_id', registration.id).order('week_number', { ascending: true })
       ]);
@@ -162,14 +176,23 @@ export default function StudentDashboard() {
                       <BookOpen className="w-4 h-4 text-blue-300" />
                       <span>{reg.class_slots?.courses?.name}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <MapPin className="w-4 h-4 text-blue-300" />
-                      <span>KL Learning Center</span>
-                    </div>
+                    {reg.class_slots?.venue && (
+                      <div className="flex items-center gap-3 text-sm">
+                        <MapPin className="w-4 h-4 text-blue-300" />
+                        <span>{reg.class_slots.venue}</span>
+                      </div>
+                    )}
                   </div>
-                  <button className="w-full bg-white text-blue-600 py-3 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors">
-                    Join Online Lab
-                  </button>
+                  {reg.class_slots?.online_meeting_url && (
+                    <a 
+                      href={reg.class_slots.online_meeting_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full bg-white text-blue-600 py-3 rounded-xl font-bold text-sm text-center hover:bg-blue-50 transition-colors"
+                    >
+                      Join Online Lab
+                    </a>
+                  )}
                 </div>
 
                 <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">

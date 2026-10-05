@@ -88,6 +88,7 @@ export type ClassSlot = {
   start_time: string;
   end_time: string;
   venue: string;
+  online_meeting_url: string | null;
   start_date: string;
   capacity: number;
   is_active: boolean;
@@ -130,6 +131,7 @@ export type Registration = {
   slot_id: string;
   payment_plan_id: string | null;
   status: 'pending' | 'approved' | 'rejected' | 'waitlist';
+  student_user_id: string | null;
   lead_source: string | null;
   terms_accepted_at: string | null;
   media_consent: boolean;
@@ -137,6 +139,7 @@ export type Registration = {
   created_at: string;
   updated_at: string;
   profiles?: Profile;
+  student_profile?: Profile;
   class_slots?: ClassSlot & { courses?: Course; age_groups?: AgeGroup };
   payments?: Payment[];
   payment_plans?: PaymentPlan;

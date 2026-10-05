@@ -12,7 +12,7 @@ export default function Safety() {
       .from('site_content')
       .select('content')
       .eq('section_id', 'safety')
-      .single()
+      .maybeSingle()
       .then(({ data }) => {
         if (data) setContent(data.content);
       });

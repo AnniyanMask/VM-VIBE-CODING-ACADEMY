@@ -26,7 +26,7 @@ export default function ParentDashboard() {
     const [regRes, annRes, setRes, schedRes] = await Promise.all([
       supabase.from('registrations').select('*, class_slots(*, courses(*), age_groups(*)), payments(*)').eq('parent_id', session.user.id),
       supabase.from('announcements').select('*').eq('is_active', true).in('target_role', ['all', 'parent']).order('created_at', { ascending: false }).limit(3),
-      supabase.from('site_settings').select('value').eq('key', 'contact').single(),
+      supabase.from('site_settings').select('value').eq('key', 'contact').maybeSingle(),
       supabase.from('payment_schedules').select('*').eq('parent_id', session.user.id)
     ]);
 

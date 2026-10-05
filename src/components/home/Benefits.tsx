@@ -13,7 +13,7 @@ export default function Benefits() {
       .from('site_content')
       .select('content')
       .eq('section_id', 'benefits')
-      .single()
+      .maybeSingle()
       .then(({ data }) => {
         if (data) setContent(data.content);
       });

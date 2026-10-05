@@ -16,15 +16,26 @@ export default function AdminRegistrations() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedReg, setSelectedReg] = useState<Registration | null>(null);
   const [templates, setTemplates] = useState<any>(null);
+  const [studentUsers, setStudentUsers] = useState<any[]>([]);
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [linkingRegId, setLinkingRegId] = useState<string | null>(null);
+  const [targetStudentId, setTargetStudentId] = useState('');
+  const [linkLoading, setLinkLoading] = useState(false);
 
   useEffect(() => {
     fetchData();
+    fetchStudentUsers();
   }, []);
+
+  async function fetchStudentUsers() {
+    const { data } = await supabase.from('profiles').select('id, email, full_name').eq('role', 'student').order('full_name', { ascending: true });
+    if (data) setStudentUsers(data);
+  }
 
   async function fetchData() {
     setLoading(true);
     const [regsRes, slotsRes, settingsRes] = await Promise.all([
-      supabase.from('registrations').select('*, profiles(*), class_slots(*, courses(*), age_groups(*)), payment_plans(*)').order('created_at', { ascending: false }),
+      supabase.from('registrations').select('*, profiles(*), class_slots(*, courses(*), age_groups(*)), payment_plans(*), student_profile:student_user_id(*)').order('created_at', { ascending: false }),
       supabase.from('class_slots').select('*, courses(*), age_groups(*)'),
       supabase.from('site_settings').select('value').eq('key', 'message_templates').single()
     ]);
@@ -59,6 +70,30 @@ export default function AdminRegistrations() {
       if (selectedReg?.id === id) setSelectedReg({ ...selectedReg, status });
     } catch (err: any) {
       alert(`Error updating status: ${err.message}`);
+    }
+  }
+
+  async function handleLinkAccount(e: React.FormEvent) {
+    e.preventDefault();
+    if (!linkingRegId || !targetStudentId) return;
+    
+    setLinkLoading(true);
+    try {
+      const { error } = await supabase
+        .from('registrations')
+        .update({ student_user_id: targetStudentId })
+        .eq('id', linkingRegId);
+      
+      if (error) throw error;
+      
+      setIsLinkModalOpen(false);
+      setLinkingRegId(null);
+      setTargetStudentId('');
+      fetchData();
+    } catch (err: any) {
+      alert(`Error linking account: ${err.message}`);
+    } finally {
+      setLinkLoading(false);
     }
   }
 
@@ -212,6 +247,23 @@ export default function AdminRegistrations() {
                   </span>
                   
                   <div className="flex gap-2">
+                    <button 
+                      onClick={() => {
+                        setLinkingRegId(reg.id);
+                        setTargetStudentId(reg.student_user_id || '');
+                        setIsLinkModalOpen(true);
+                      }}
+                      className={cn(
+                        "flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all shadow-sm border",
+                        reg.student_user_id 
+                          ? "bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100" 
+                          : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
+                      )}
+                    >
+                      <User className="w-3.5 h-3.5" />
+                      {reg.student_profile?.full_name ? `Linked: ${reg.student_profile.full_name}` : "Link Student Account"}
+                    </button>
+
                     {reg.status === 'pending' && (
                       <div className="flex gap-2">
                         <button 
@@ -259,6 +311,62 @@ export default function AdminRegistrations() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Account Linkage Modal */}
+      {isLinkModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+          <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <div>
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">Link Student Account</h3>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Direct Student Access</p>
+              </div>
+              <button onClick={() => setIsLinkModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-all text-slate-400"><X className="w-5 h-5" /></button>
+            </div>
+            
+            <form onSubmit={handleLinkAccount} className="p-8 space-y-6">
+              <div className="space-y-4">
+                <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                  <p className="text-xs text-blue-700 leading-relaxed font-medium">
+                    Select the student's personal login account. This allows them to see their own classes and progress independently of their parent.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Student User</label>
+                  <select 
+                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700 text-sm appearance-none"
+                    value={targetStudentId}
+                    onChange={e => setTargetStudentId(e.target.value)}
+                  >
+                    <option value="">No account linked</option>
+                    {studentUsers.map(u => (
+                      <option key={u.id} value={u.id}>{u.full_name} ({u.email})</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-4 flex flex-col gap-2">
+                <button 
+                  type="submit" 
+                  disabled={linkLoading}
+                  className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-xl hover:bg-slate-800 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2"
+                >
+                  {linkLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Shield className="w-4 h-4" /> Save Linkage</>}
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setIsLinkModalOpen(false)}
+                  className="w-full py-4 text-slate-400 font-bold text-xs uppercase tracking-widest hover:text-slate-600 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

@@ -12,8 +12,8 @@ export default function Hero() {
   useEffect(() => {
     async function fetchData() {
       const [settingsRes, contentRes, ageGroupsRes] = await Promise.all([
-        supabase.from('site_settings').select('value').eq('key', 'contact').single(),
-        supabase.from('site_content').select('content').eq('section_id', 'hero').single(),
+        supabase.from('site_settings').select('value').eq('key', 'contact').maybeSingle(),
+        supabase.from('site_content').select('content').eq('section_id', 'hero').maybeSingle(),
         supabase.from('age_groups').select('min_age, max_age').eq('is_active', true)
       ]);
       

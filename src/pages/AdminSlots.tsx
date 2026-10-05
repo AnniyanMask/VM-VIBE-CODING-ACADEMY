@@ -19,6 +19,7 @@ export default function AdminSlots() {
     start_time: '10:00:00',
     end_time: '11:30:00',
     venue: '',
+    online_meeting_url: '',
     start_date: '',
     capacity: 12,
     is_active: true
@@ -297,6 +298,11 @@ export default function AdminSlots() {
               <div className="space-y-2">
                 <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Venue Name</label>
                 <input className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700" placeholder="e.g. KL Digital Hub" value={formData.venue || ''} onChange={e => setFormData({...formData, venue: e.target.value})} required />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Online Meeting URL (Optional)</label>
+                <input className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700" placeholder="e.g. https://zoom.us/j/..." value={formData.online_meeting_url || ''} onChange={e => setFormData({...formData, online_meeting_url: e.target.value})} />
               </div>
 
               <div className="space-y-2">

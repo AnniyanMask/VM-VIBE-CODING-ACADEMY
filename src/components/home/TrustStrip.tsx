@@ -12,7 +12,7 @@ export default function TrustStrip() {
       .from('site_content')
       .select('content')
       .eq('section_id', 'trust_strip')
-      .single()
+      .maybeSingle()
       .then(({ data }) => {
         if (data) setItems(data.content.items);
       });

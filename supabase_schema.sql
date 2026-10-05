@@ -123,6 +123,7 @@ CREATE TABLE IF NOT EXISTS public.class_slots (
     venue TEXT NOT NULL,
     start_date DATE NOT NULL,
     capacity INTEGER NOT NULL,
+    online_meeting_url TEXT,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -156,6 +157,7 @@ CREATE TABLE IF NOT EXISTS public.registrations (
     slot_id UUID REFERENCES public.class_slots(id),
     payment_plan_id UUID REFERENCES public.payment_plans(id),
     status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'waitlist')),
+    student_user_id UUID REFERENCES public.profiles(id), -- Linked student account
     lead_source TEXT,
     terms_accepted_at TIMESTAMPTZ,
     media_consent BOOLEAN DEFAULT false,
@@ -402,7 +404,7 @@ CREATE POLICY "Admin manage enquiries" ON public.enquiries FOR ALL USING (public
 -- Registrations
 ALTER TABLE public.registrations ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "View registrations" ON public.registrations;
-CREATE POLICY "View registrations" ON public.registrations FOR SELECT USING (auth.uid() = parent_id OR public.is_admin());
+CREATE POLICY "View registrations" ON public.registrations FOR SELECT USING (auth.uid() = parent_id OR auth.uid() = student_user_id OR public.is_admin());
 DROP POLICY IF EXISTS "Insert registrations" ON public.registrations;
 CREATE POLICY "Insert registrations" ON public.registrations FOR INSERT WITH CHECK (auth.uid() = parent_id);
 DROP POLICY IF EXISTS "Admin manage registrations" ON public.registrations;
@@ -438,13 +440,13 @@ CREATE POLICY "Parents view own consent logs" ON public.consent_logs FOR SELECT 
 
 ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "View attendance" ON public.attendance;
-CREATE POLICY "View attendance" ON public.attendance FOR SELECT USING (EXISTS (SELECT 1 FROM registrations WHERE registrations.id = attendance.registration_id AND (registrations.parent_id = auth.uid())) OR public.is_admin());
+CREATE POLICY "View attendance" ON public.attendance FOR SELECT USING (EXISTS (SELECT 1 FROM registrations WHERE registrations.id = attendance.registration_id AND (registrations.parent_id = auth.uid() OR registrations.student_user_id = auth.uid())) OR public.is_admin());
 DROP POLICY IF EXISTS "Admin manage attendance" ON public.attendance;
 CREATE POLICY "Admin manage attendance" ON public.attendance FOR ALL USING (public.is_admin());
 
 ALTER TABLE public.student_progress ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "View progress" ON public.student_progress;
-CREATE POLICY "View progress" ON public.student_progress FOR SELECT USING (EXISTS (SELECT 1 FROM registrations WHERE registrations.id = student_progress.registration_id AND (registrations.parent_id = auth.uid())) OR public.is_admin());
+CREATE POLICY "View progress" ON public.student_progress FOR SELECT USING (EXISTS (SELECT 1 FROM registrations WHERE registrations.id = student_progress.registration_id AND (registrations.parent_id = auth.uid() OR registrations.student_user_id = auth.uid())) OR public.is_admin());
 DROP POLICY IF EXISTS "Admin manage progress" ON public.student_progress;
 CREATE POLICY "Admin manage progress" ON public.student_progress FOR ALL USING (public.is_admin());
 
@@ -662,6 +664,36 @@ INSERT INTO public.site_settings (key, value) VALUES
     {"item": "Water bottle & Jacket (Venue is air-conditioned)", "required": false}
 ]')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
+
+-- Website Content
+INSERT INTO public.site_content (section_id, content) VALUES
+('hero', '{
+    "intake_text": "Next Intake: October 2026",
+    "headline": "Your child has an idea.",
+    "subheadline": "Let AI help them build it.",
+    "subtext": "No coding experience needed. Small classes, hands-on learning."
+}'),
+('benefits', '{
+    "title": "Why Choose VM Vibe Academy?",
+    "subtitle": "We provide more than just coding classes; we build future creators.",
+    "items": [
+        {"title": "AI-First Approach", "description": "We don''t just teach code; we teach how to leverage AI tools to build real products faster.", "icon": "Rocket"},
+        {"title": "Project-Based", "description": "Every student leaves with a portfolio of real applications they built themselves.", "icon": "Palette"},
+        {"title": "Small Classes", "description": "Maximum 8 students per class ensures personalized attention for every child.", "icon": "Target"},
+        {"title": "Industry Skills", "description": "Curriculum designed by professionals to align with real-world tech standards.", "icon": "ShieldCheck"}
+    ]
+}'),
+('safety', '{
+    "title": "A Safe, Inspiring Space",
+    "subtitle": "Your child''s safety and comfort are our top priorities.",
+    "items": [
+        {"title": "Moderated AI", "text": "Strictly moderated AI environments with safety filters.", "icon": "Lock"},
+        {"title": "Safe Staff", "text": "Experienced instructors background-checked for child safety.", "icon": "Shield"},
+        {"title": "Secure Lab", "text": "Air-conditioned, modern learning lab with 24/7 security.", "icon": "Eye"},
+        {"title": "Supportive", "text": "A kind, encouraging atmosphere where failure is part of learning.", "icon": "HeartHandshake"}
+    ]
+}')
+ON CONFLICT (section_id) DO UPDATE SET content = EXCLUDED.content;
 
 -- Age Groups
 INSERT INTO public.age_groups (name, min_age, max_age) VALUES

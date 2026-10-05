@@ -36,8 +36,8 @@ export default function HelpPage() {
   async function fetchData() {
     const [faqRes, checklistRes, settingsRes] = await Promise.all([
       supabase.from('faqs').select('*').eq('is_active', true).order('sort_order', { ascending: true }),
-      supabase.from('site_settings').select('value').eq('key', 'course_checklist').single(),
-      supabase.from('site_settings').select('value').eq('key', 'contact').single()
+      supabase.from('site_settings').select('value').eq('key', 'course_checklist').maybeSingle(),
+      supabase.from('site_settings').select('value').eq('key', 'contact').maybeSingle()
     ]);
 
     if (faqRes.data) setFaqs(faqRes.data);

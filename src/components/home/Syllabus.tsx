@@ -11,7 +11,7 @@ export default function Syllabus() {
       .select('*')
       .eq('is_active', true)
       .limit(1)
-      .single()
+      .maybeSingle()
       .then(({ data }) => {
         if (data) setCourse(data as Course);
       });

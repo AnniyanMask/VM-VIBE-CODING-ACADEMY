@@ -10,7 +10,7 @@ export default function Venue() {
       .from('site_settings')
       .select('value')
       .eq('key', 'contact')
-      .single()
+      .maybeSingle()
       .then(({ data }) => {
         if (data) setSettings(data.value as SiteSettings);
       });
