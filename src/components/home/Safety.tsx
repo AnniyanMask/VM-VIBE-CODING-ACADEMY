@@ -21,7 +21,7 @@ export default function Safety() {
   if (!content) return null;
 
   return (
-    <section className="py-24 bg-white" id="safety">
+    <section className="py-20 bg-white" id="safety">
       <div className="container mx-auto px-4 md:px-6">
         <div className="bg-blue-600 rounded-[32px] md:rounded-[48px] p-8 md:p-16 relative overflow-hidden">
           <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />

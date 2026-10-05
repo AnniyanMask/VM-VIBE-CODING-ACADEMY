@@ -3,7 +3,7 @@ import { supabase, type Registration, type ClassSlot } from '../lib/supabase';
 import { 
   Users, Check, X, MessageSquare, Search, Filter, 
   Loader2, Calendar, BookOpen, Download, MoreHorizontal,
-  Mail, Phone, ExternalLink, RefreshCw, Clock, Info, Shield, Camera, ArrowUpCircle
+  Mail, Phone, ExternalLink, RefreshCw, Clock, Info, Shield, Camera, ArrowUpCircle, CreditCard
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '../lib/utils';
@@ -18,6 +18,9 @@ export default function AdminRegistrations() {
   const [templates, setTemplates] = useState<any>(null);
   const [studentUsers, setStudentUsers] = useState<any[]>([]);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
+  const [discountingReg, setDiscountingReg] = useState<Registration | null>(null);
+  const [discountValue, setDiscountValue] = useState(0);
   const [linkingRegId, setLinkingRegId] = useState<string | null>(null);
   const [targetStudentId, setTargetStudentId] = useState('');
   const [linkLoading, setLinkLoading] = useState(false);
@@ -92,6 +95,54 @@ export default function AdminRegistrations() {
       fetchData();
     } catch (err: any) {
       alert(`Error linking account: ${err.message}`);
+    } finally {
+      setLinkLoading(false);
+    }
+  }
+
+  async function handleUpdateDiscount(e: React.FormEvent) {
+    e.preventDefault();
+    if (!discountingReg) return;
+    
+    setLinkLoading(true);
+    try {
+      // 1. Update registration discount
+      const { error: regError } = await supabase
+        .from('registrations')
+        .update({ discount_amount: discountValue })
+        .eq('id', discountingReg.id);
+      
+      if (regError) throw regError;
+
+      // 2. Adjust payment schedules
+      // Find all pending schedules for this parent/group
+      const { data: schedules } = await supabase
+        .from('payment_schedules')
+        .select('*')
+        .eq('parent_id', discountingReg.parent_id)
+        .eq('group_id', discountingReg.group_id)
+        .eq('status', 'pending');
+
+      if (schedules && schedules.length > 0) {
+        // Calculate total original amount of the plan (simplified)
+        // We subtract the new discount from the remaining installments
+        const oldDiscount = discountingReg.discount_amount || 0;
+        const discountDiff = discountValue - oldDiscount;
+        const adjustmentPerInstallment = discountDiff / schedules.length;
+
+        for (const schedule of schedules) {
+          await supabase
+            .from('payment_schedules')
+            .update({ amount: Math.max(0, schedule.amount - adjustmentPerInstallment) })
+            .eq('id', schedule.id);
+        }
+      }
+      
+      setIsDiscountModalOpen(false);
+      setDiscountingReg(null);
+      fetchData();
+    } catch (err: any) {
+      alert(`Error updating discount: ${err.message}`);
     } finally {
       setLinkLoading(false);
     }
@@ -249,6 +300,18 @@ export default function AdminRegistrations() {
                   <div className="flex gap-2">
                     <button 
                       onClick={() => {
+                        setDiscountingReg(reg);
+                        setDiscountValue(reg.discount_amount || 0);
+                        setIsDiscountModalOpen(true);
+                      }}
+                      className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 text-amber-600 border border-amber-100 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-amber-100 transition-all shadow-sm"
+                    >
+                      <CreditCard className="w-3.5 h-3.5" />
+                      Discount: RM {reg.discount_amount || 0}
+                    </button>
+
+                    <button 
+                      onClick={() => {
                         setLinkingRegId(reg.id);
                         setTargetStudentId(reg.student_user_id || '');
                         setIsLinkModalOpen(true);
@@ -260,7 +323,7 @@ export default function AdminRegistrations() {
                           : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
                       )}
                     >
-                      <User className="w-3.5 h-3.5" />
+                      <Users className="w-3.5 h-3.5" />
                       {reg.student_profile?.full_name ? `Linked: ${reg.student_profile.full_name}` : "Link Student Account"}
                     </button>
 
@@ -360,6 +423,63 @@ export default function AdminRegistrations() {
                 <button 
                   type="button"
                   onClick={() => setIsLinkModalOpen(false)}
+                  className="w-full py-4 text-slate-400 font-bold text-xs uppercase tracking-widest hover:text-slate-600 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Discount Modal */}
+      {isDiscountModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+          <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <div>
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">Apply Discount</h3>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Manual Fee Reduction</p>
+              </div>
+              <button onClick={() => setIsDiscountModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-all text-slate-400"><X className="w-5 h-5" /></button>
+            </div>
+            
+            <form onSubmit={handleUpdateDiscount} className="p-8 space-y-6">
+              <div className="space-y-4">
+                <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                  <p className="text-xs text-amber-700 leading-relaxed font-medium">
+                    Enter the total discount amount in RM for <strong>{discountingReg?.student_name}</strong>. This will be automatically subtracted from any pending payment installments.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Discount Amount (RM)</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">RM</span>
+                    <input 
+                      type="number"
+                      step="0.01"
+                      className="w-full p-4 pl-12 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700 text-lg"
+                      value={discountValue}
+                      onChange={e => setDiscountValue(parseFloat(e.target.value) || 0)}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 flex flex-col gap-2">
+                <button 
+                  type="submit" 
+                  disabled={linkLoading}
+                  className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-xl hover:bg-slate-800 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2"
+                >
+                  {linkLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4" /> Apply & Recalculate</>}
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setIsDiscountModalOpen(false)}
                   className="w-full py-4 text-slate-400 font-bold text-xs uppercase tracking-widest hover:text-slate-600 transition-colors"
                 >
                   Cancel

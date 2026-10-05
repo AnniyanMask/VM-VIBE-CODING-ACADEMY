@@ -19,7 +19,7 @@ export default function CTA() {
   const contact = settings;
 
   return (
-    <section className="py-24 bg-blue-50">
+    <section className="py-20 bg-blue-50">
       <div className="container mx-auto px-4 md:px-6">
         <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">

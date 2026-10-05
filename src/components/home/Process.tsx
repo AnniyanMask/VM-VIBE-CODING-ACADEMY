@@ -13,9 +13,9 @@ export default function Process() {
   ];
 
   return (
-    <section className="py-24 bg-slate-50 overflow-hidden" id="process">
+    <section className="pt-12 pb-20 bg-slate-50 overflow-hidden" id="process">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-3xl mx-auto text-center mb-16 space-y-4">
+        <div className="max-w-3xl mx-auto text-center mb-12 space-y-4">
           <h2 className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight">How it works</h2>
           <p className="text-lg text-slate-600">Our proven 7-step process to bring any idea to life.</p>
         </div>

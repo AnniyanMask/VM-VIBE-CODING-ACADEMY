@@ -28,9 +28,9 @@ export default function FAQ() {
   if (faqs.length === 0) return null;
 
   return (
-    <section className="py-24 bg-white" id="faq">
+    <section className="py-20 bg-white" id="faq">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-3xl mx-auto text-center mb-16 space-y-4">
+        <div className="max-w-3xl mx-auto text-center mb-12 space-y-4">
           <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight">Support & Information</h2>
           <p className="text-lg text-slate-600">Common enquiries regarding our pedagogical approach and enrollment.</p>
         </div>

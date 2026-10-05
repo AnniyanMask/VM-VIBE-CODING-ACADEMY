@@ -42,7 +42,7 @@ export default function EnquiryForm() {
   }
 
   return (
-    <section className="py-24 bg-white" id="enquiry">
+    <section className="py-20 bg-white" id="enquiry">
       <div className="container mx-auto px-4 md:px-6">
         <div className="max-w-5xl mx-auto bg-slate-900 rounded-[48px] overflow-hidden shadow-2xl relative">
           <div className="absolute top-0 right-0 p-12 opacity-10">

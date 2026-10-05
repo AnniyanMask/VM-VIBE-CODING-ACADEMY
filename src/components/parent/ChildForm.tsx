@@ -97,6 +97,7 @@ export default function ChildForm({ parentId, onSuccess, onSkip, enquiryId }: Pr
     try {
       const groupId = crypto.randomUUID();
       const selectedPlan = paymentPlans.find(p => p.id === paymentPlanId);
+      const multiplier = (selectedPlan?.children_count === 1) ? students.length : 1;
 
       // 1. Prepare registrations
       const initialStatus = regControl?.status === 'waitlist' ? 'waitlist' : 'pending';
@@ -138,7 +139,7 @@ export default function ChildForm({ parentId, onSuccess, onSkip, enquiryId }: Pr
           scheduleEntries.push({
             parent_id: parentId,
             group_id: groupId,
-            amount: selectedPlan.fee / selectedPlan.installment_count,
+            amount: (selectedPlan.fee * multiplier) / selectedPlan.installment_count,
             due_date: dueDate.toISOString().split('T')[0],
             installment_number: i + 1,
             status: 'pending'
@@ -161,7 +162,8 @@ export default function ChildForm({ parentId, onSuccess, onSkip, enquiryId }: Pr
   }
 
   const selectedPlan = paymentPlans.find(p => p.id === paymentPlanId);
-  const totalAmount = selectedPlan?.fee || 0;
+  const multiplier = (selectedPlan?.children_count === 1) ? students.length : 1;
+  const totalAmount = (selectedPlan?.fee || 0) * multiplier;
   const basePlan = paymentPlans.find(p => p.installment_count === 1 && p.children_count === 1);
   const standardPrice = (basePlan?.fee || 250) * students.length;
   const savings = standardPrice - totalAmount;

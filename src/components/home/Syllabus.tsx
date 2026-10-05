@@ -20,9 +20,9 @@ export default function Syllabus() {
   if (!course) return null;
 
   return (
-    <section className="py-24 bg-white" id="course">
+    <section className="py-20 bg-white" id="course">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-3xl mx-auto text-center mb-16 space-y-4">
+        <div className="max-w-3xl mx-auto text-center mb-12 space-y-4">
           <h2 className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight">{course.name} Syllabus</h2>
           <p className="text-lg text-slate-600">{course.duration_weeks}-week journey from zero to app hero.</p>
         </div>
@@ -57,7 +57,7 @@ export default function Syllabus() {
           </div>
         </div>
 
-        <div className="mt-16 text-center">
+        <div className="mt-12 text-center">
           <a
             href="/register"
             className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-200"

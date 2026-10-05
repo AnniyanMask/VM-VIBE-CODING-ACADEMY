@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Settings, FileText, BookOpen, Users, 
   CreditCard, Clock, ListChecks, HelpCircle, Megaphone, 
   Menu, X, LogOut, ChevronRight, UserCircle, MessageSquare,
-  History, GraduationCap, DollarSign, UserPlus, Baby, ShieldCheck, Star, Sparkles, Landmark
+  History, GraduationCap, DollarSign, UserPlus, Baby, ShieldCheck, Star, Sparkles, Landmark, Target
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { supabase } from '../../lib/supabase';
@@ -31,6 +31,7 @@ const menuSections: MenuSection[] = [
     title: 'STUDENTS',
     items: [
       { icon: ListChecks, label: 'Registrations', href: '/admin/registrations' },
+      { icon: Target, label: 'Progress Tracking', href: '/admin/progress' },
       { icon: HelpCircle, label: 'Enquiries', href: '/admin/enquiries' },
       { icon: UserPlus, label: 'Sibling Requests', href: '/admin/siblings' },
       { icon: MessageSquare, label: 'Parent Requests', href: '/admin/requests' },
@@ -180,13 +181,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <h2 className="text-2xl font-black text-slate-900 tracking-tight">{activeItem?.label}</h2>
           </div>
           <div className="flex items-center gap-4">
-            <div className="text-right mr-4">
+            <div className="text-right mr-2">
               <p className="text-xs font-black text-slate-900">{profile?.full_name || 'Administrator'}</p>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{profile?.role === 'admin' ? 'Master Access' : 'Staff Access'}</p>
             </div>
             <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 font-black text-xs uppercase">
               {profile?.full_name?.[0] || <UserCircle className="w-6 h-6" />}
             </div>
+            <div className="w-px h-8 bg-slate-100 mx-2" />
+            <button 
+              onClick={handleLogout}
+              className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+              title="Logout"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
           </div>
         </header>
 

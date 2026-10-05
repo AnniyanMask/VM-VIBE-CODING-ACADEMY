@@ -89,8 +89,15 @@ export default function ChildCard({ registration, amountDue }: Props) {
             {registration.class_slots?.day_of_week}s @ {registration.class_slots?.start_time?.slice(0, 5)}
           </div>
           {amountDue !== undefined && amountDue > 0 && (
-            <div className="text-xs font-bold text-rose-500 mt-1">
-              RM {amountDue} Due
+            <div className="flex flex-col">
+              <div className="text-xs font-bold text-rose-500 mt-1">
+                RM {amountDue} Due
+              </div>
+              {registration.discount_amount > 0 && (
+                <div className="text-[8px] font-black text-emerald-600 uppercase tracking-widest mt-0.5">
+                  Applied RM {registration.discount_amount} Reduction
+                </div>
+              )}
             </div>
           )}
         </div>

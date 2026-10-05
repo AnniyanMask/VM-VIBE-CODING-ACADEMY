@@ -19,9 +19,9 @@ export default function Projects() {
   if (projects.length === 0) return null;
 
   return (
-    <section className="py-24 bg-white" id="projects">
+    <section className="pt-20 pb-12 bg-white" id="projects">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-3xl mx-auto text-center mb-16 space-y-4">
+        <div className="max-w-3xl mx-auto text-center mb-12 space-y-4">
           <h2 className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight">What your child will build</h2>
           <p className="text-lg text-slate-600">Real-world projects they can show off to family and friends.</p>
         </div>
@@ -54,7 +54,7 @@ export default function Projects() {
           ))}
         </div>
 
-        <div className="mt-16 text-center">
+        <div className="mt-10 text-center">
           <a
             href="/register"
             className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-200"

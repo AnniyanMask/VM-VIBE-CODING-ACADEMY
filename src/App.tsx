@@ -23,6 +23,7 @@ import AdminContent from './pages/AdminContent';
 import AdminSettings from './pages/AdminSettings';
 import AdminUsers from './pages/AdminUsers';
 import AdminEnquiries from './pages/AdminEnquiries';
+import AdminProgress from './pages/AdminProgress';
 import AdminLogs from './pages/AdminLogs';
 import AdminFAQs from './pages/AdminFAQs';
 import AdminTestimonials from './pages/AdminTestimonials';
@@ -150,6 +151,7 @@ export default function App() {
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminRoute role={profile?.role}><AdminDashboard /></AdminRoute>} />
         <Route path="/admin/registrations" element={<AdminRoute role={profile?.role}><AdminRegistrations /></AdminRoute>} />
+        <Route path="/admin/progress" element={<AdminRoute role={profile?.role}><AdminProgress /></AdminRoute>} />
         <Route path="/admin/payments" element={<AdminRoute role={profile?.role}><AdminPayments /></AdminRoute>} />
         <Route path="/admin/siblings" element={<AdminRoute role={profile?.role}><AdminSiblingRequests /></AdminRoute>} />
         <Route path="/admin/requests" element={<AdminRoute role={profile?.role}><AdminRequests /></AdminRoute>} />

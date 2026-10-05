@@ -91,6 +91,7 @@ export type ClassSlot = {
   online_meeting_url: string | null;
   start_date: string;
   total_seats: number;
+  seats_left: number;
   is_active: boolean;
   age_group?: AgeGroup;
   courses?: Course;
@@ -132,6 +133,7 @@ export type Registration = {
   payment_plan_id: string | null;
   status: 'pending' | 'approved' | 'rejected' | 'waitlist';
   student_user_id: string | null;
+  discount_amount: number;
   lead_source: string | null;
   terms_accepted_at: string | null;
   media_consent: boolean;

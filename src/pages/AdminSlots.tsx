@@ -22,6 +22,7 @@ export default function AdminSlots() {
     online_meeting_url: '',
     start_date: '',
     total_seats: 12,
+    seats_left: 12,
     is_active: true
   });
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -84,6 +85,7 @@ export default function AdminSlots() {
       venue: '',
       start_date: new Date().toISOString().split('T')[0],
       total_seats: 12,
+      seats_left: 12,
       is_active: true 
     });
     setIsModalOpen(true);
@@ -97,6 +99,17 @@ export default function AdminSlots() {
 
     try {
       if (editingId) {
+        // Calculate new seats_left based on occupied count
+        const oldData = data.find(d => d.id === editingId);
+        const occupied = (oldData?.total_seats || 0) - (oldData?.seats_left || 0);
+        const newSeatsLeft = cleanData.total_seats - occupied;
+
+        if (newSeatsLeft < 0) {
+          throw new Error("Total seats cannot be lower than the number of occupied seats.");
+        }
+
+        cleanData.seats_left = newSeatsLeft;
+
         const { error } = await supabase.from('class_slots').update(cleanData).eq('id', editingId);
         if (error) throw error;
         
@@ -109,13 +122,16 @@ export default function AdminSlots() {
 
         showMessage('success', 'Updated successfully');
       } else {
-        const { data, error } = await supabase.from('class_slots').insert(cleanData).select().single();
+        // For new slots, seats_left = total_seats
+        cleanData.seats_left = cleanData.total_seats;
+        
+        const { data: insertedData, error } = await supabase.from('class_slots').insert(cleanData).select().single();
         if (error) throw error;
 
         await logActivity({
           action: 'create_slot',
           entity_type: 'class_slots',
-          entity_id: data.id,
+          entity_id: insertedData.id,
           new_value: cleanData
         });
 

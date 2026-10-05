@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase, type Payment, type PaymentSchedule } from '../lib/supabase';
-import { FileText, CheckCircle2, XCircle, AlertCircle, Loader2, ExternalLink, RefreshCw, DollarSign, Calendar, Search } from 'lucide-react';
+import { FileText, CheckCircle2, XCircle, AlertCircle, Loader2, ExternalLink, RefreshCw, DollarSign, Calendar, Search, CreditCard } from 'lucide-react';
 import { cn } from '../lib/utils';
 import ConfirmDialog from '../components/admin/ConfirmDialog';
 
@@ -12,6 +12,10 @@ export default function AdminPayments() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'paid'>('all');
   const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean, scheduleId: string | null }>({ isOpen: false, scheduleId: null });
 
+  const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
+  const [discountingSchedule, setDiscountingSchedule] = useState<PaymentSchedule | null>(null);
+  const [discountValue, setDiscountValue] = useState(0);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -21,7 +25,7 @@ export default function AdminPayments() {
       setLoading(true);
       const { data, error } = await supabase
         .from('payment_schedules')
-        .select('*, profiles(full_name, email), payments(*)')
+        .select('*, profiles(full_name, email), payments(*), registrations(student_name, discount_amount)')
         .order('due_date', { ascending: true });
 
       if (error) throw error;
@@ -30,6 +34,36 @@ export default function AdminPayments() {
       alert(`Error fetching payments: ${err.message}`);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleUpdateDiscount(e: React.FormEvent) {
+    e.preventDefault();
+    if (!discountingSchedule) return;
+    
+    setProcessing(discountingSchedule.id);
+    try {
+      // Calculate new amount based on original amount if possible, 
+      // or just trust the input and update the amount directly.
+      // Since we don't have original_amount column yet, we'll just update amount.
+      // But we'll try to be smart if the user wants to reduce it.
+      
+      const { error } = await supabase
+        .from('payment_schedules')
+        .update({ 
+          amount: Math.max(0, discountValue) // Admin sets the FINAL amount they want the user to pay
+        })
+        .eq('id', discountingSchedule.id);
+      
+      if (error) throw error;
+      
+      setIsDiscountModalOpen(false);
+      setDiscountingSchedule(null);
+      fetchData();
+    } catch (err: any) {
+      alert(`Error updating amount: ${err.message}`);
+    } finally {
+      setProcessing(null);
     }
   }
 
@@ -159,7 +193,29 @@ export default function AdminPayments() {
                     </div>
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Amount Due</p>
-                      <p className="font-bold text-blue-600 text-base">RM {schedule.amount}</p>
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-blue-600 text-base">RM {schedule.amount}</p>
+                          {schedule.status === 'pending' && (
+                            <button 
+                              onClick={() => {
+                                setDiscountingSchedule(schedule);
+                                setDiscountValue(Number(schedule.amount));
+                                setIsDiscountModalOpen(true);
+                              }}
+                              className="p-1 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 transition-colors"
+                              title="Adjust Amount"
+                            >
+                              <CreditCard className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                        {(schedule as any).registrations?.discount_amount > 0 && (
+                          <p className="text-[9px] font-bold text-amber-600 uppercase tracking-widest mt-0.5">
+                            Reg. Discount RM {(schedule as any).registrations.discount_amount}
+                          </p>
+                        )}
+                      </div>
                     </div>
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Due Date</p>
@@ -252,6 +308,63 @@ export default function AdminPayments() {
         message="Are you sure you want to mark this installment as paid manually? This should only be done if you have verified the funds in your bank account."
         confirmText="Mark as Paid"
       />
+
+      {/* Discount Modal */}
+      {isDiscountModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+          <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <div>
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">Adjust Installment</h3>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Manual Reduction</p>
+              </div>
+              <button onClick={() => setIsDiscountModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-all text-slate-400"><XCircle className="w-5 h-5" /></button>
+            </div>
+            
+            <form onSubmit={handleUpdateDiscount} className="p-8 space-y-6">
+              <div className="space-y-4">
+                <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                  <p className="text-xs text-amber-700 leading-relaxed font-medium">
+                    Set the new amount due for this installment. This will update what the parent sees in their dashboard.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">New Amount Due (RM)</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">RM</span>
+                    <input 
+                      type="number"
+                      step="0.01"
+                      className="w-full p-4 pl-12 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700 text-lg"
+                      value={discountValue}
+                      onChange={e => setDiscountValue(parseFloat(e.target.value) || 0)}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 flex flex-col gap-2">
+                <button 
+                  type="submit" 
+                  disabled={!!processing}
+                  className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-xl hover:bg-slate-800 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2"
+                >
+                  {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle2 className="w-4 h-4" /> Update Amount</>}
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setIsDiscountModalOpen(false)}
+                  className="w-full py-4 text-slate-400 font-bold text-xs uppercase tracking-widest hover:text-slate-600 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

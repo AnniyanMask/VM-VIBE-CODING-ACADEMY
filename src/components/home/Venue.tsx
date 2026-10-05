@@ -19,9 +19,9 @@ export default function Venue() {
   const contact = settings;
 
   return (
-    <section className="py-24 bg-slate-50" id="venue">
+    <section className="py-20 bg-slate-50" id="venue">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-3xl mx-auto text-center mb-16 space-y-4">
+        <div className="max-w-3xl mx-auto text-center mb-12 space-y-4">
           <h2 className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight">Our Venue</h2>
           <p className="text-lg text-slate-600">A safe and modern learning environment in the heart of Kuala Lumpur.</p>
         </div>
