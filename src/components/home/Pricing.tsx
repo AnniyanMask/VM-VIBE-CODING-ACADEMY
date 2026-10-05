@@ -53,8 +53,8 @@ export default function Pricing() {
           <div className="lg:col-span-1 space-y-6">
             {plans.map((plan) => {
               const basePlan = plans.find(p => p.installment_count === 1 && p.children_count === 1);
-              const standardTotal = (basePlan?.amount || 250) * plan.children_count;
-              const savings = standardTotal - plan.amount;
+              const standardTotal = (basePlan?.fee || 250) * plan.children_count;
+              const savings = standardTotal - plan.fee;
               const isBestValue = plan.installment_count === 1 && plan.children_count === 1;
 
               return (
@@ -75,7 +75,7 @@ export default function Pricing() {
                   <h3 className="text-xl font-bold text-slate-900 mb-2">{plan.name}</h3>
                   <p className="text-slate-500 text-sm mb-6">{plan.description}</p>
                   <div className="flex items-baseline gap-1 mb-8">
-                    <span className="text-4xl font-bold text-slate-900">RM{plan.amount}</span>
+                    <span className="text-4xl font-bold text-slate-900">RM{plan.fee}</span>
                     <span className="text-slate-500 text-sm font-medium">/ {plan.children_count > 1 ? `${plan.children_count} children` : 'student'}</span>
                   </div>
                   

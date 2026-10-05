@@ -138,7 +138,7 @@ export default function ChildForm({ parentId, onSuccess, onSkip, enquiryId }: Pr
           scheduleEntries.push({
             parent_id: parentId,
             group_id: groupId,
-            amount: selectedPlan.amount / selectedPlan.installment_count,
+            amount: selectedPlan.fee / selectedPlan.installment_count,
             due_date: dueDate.toISOString().split('T')[0],
             installment_number: i + 1,
             status: 'pending'
@@ -161,9 +161,9 @@ export default function ChildForm({ parentId, onSuccess, onSkip, enquiryId }: Pr
   }
 
   const selectedPlan = paymentPlans.find(p => p.id === paymentPlanId);
-  const totalAmount = selectedPlan?.amount || 0;
+  const totalAmount = selectedPlan?.fee || 0;
   const basePlan = paymentPlans.find(p => p.installment_count === 1 && p.children_count === 1);
-  const standardPrice = (basePlan?.amount || 250) * students.length;
+  const standardPrice = (basePlan?.fee || 250) * students.length;
   const savings = standardPrice - totalAmount;
 
   return (
@@ -287,7 +287,7 @@ export default function ChildForm({ parentId, onSuccess, onSkip, enquiryId }: Pr
                     <p className="text-sm text-slate-500">{plan.description}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-black text-blue-600">RM {plan.amount}</p>
+                    <p className="text-2xl font-black text-blue-600">RM {plan.fee}</p>
                     {plan.installment_count > 1 && <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{plan.installment_count} Installments</p>}
                   </div>
                 </div>

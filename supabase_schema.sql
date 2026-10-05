@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS public.payment_plans (
     course_id UUID REFERENCES public.courses(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     description TEXT,
-    amount DECIMAL(10, 2) NOT NULL,
+    fee DECIMAL(10, 2) NOT NULL,
     installment_count INTEGER DEFAULT 1,
     children_count INTEGER DEFAULT 1,
     effective_from DATE,

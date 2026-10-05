@@ -64,7 +64,7 @@ export default function FAQ() {
             href="/faq"
             className="inline-flex items-center gap-2 text-blue-600 font-bold hover:gap-3 transition-all"
           >
-            View all 20+ Frequently Asked Questions <ArrowRight className="w-4 h-4" />
+            View all Frequently Asked Questions <ArrowRight className="w-4 h-4" />
           </a>
           
           <div className="pt-8">

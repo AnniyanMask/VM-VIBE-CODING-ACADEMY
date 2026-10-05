@@ -100,7 +100,7 @@ export default function App() {
                   parent_id: session.user.id,
                   registration_id: regData ? regData[0].id : null, // Link to first child or handle differently
                   group_id: groupId,
-                  amount: selectedPlan.amount / selectedPlan.installment_count,
+                  amount: selectedPlan.fee / selectedPlan.installment_count,
                   due_date: dueDate.toISOString().split('T')[0],
                   installment_number: i + 1,
                   status: 'pending'

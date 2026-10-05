@@ -60,3 +60,17 @@ USING (EXISTS (SELECT 1 FROM registrations WHERE registrations.id = attendance.r
 DROP POLICY IF EXISTS "View progress" ON public.student_progress;
 CREATE POLICY "View progress" ON public.student_progress FOR SELECT 
 USING (EXISTS (SELECT 1 FROM registrations WHERE registrations.id = student_progress.registration_id AND (registrations.parent_id = auth.uid() OR registrations.student_user_id = auth.uid())) OR public.is_admin());
+
+-- 6. Fix Payment Plans amount -> fee rename (matches user DB error)
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='payment_plans' AND column_name='amount') THEN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='payment_plans' AND column_name='fee') THEN
+            ALTER TABLE public.payment_plans RENAME COLUMN amount TO fee;
+        ELSE
+            -- Both exist
+            UPDATE public.payment_plans SET fee = amount WHERE fee IS NULL;
+            ALTER TABLE public.payment_plans DROP COLUMN amount;
+        END IF;
+    END IF;
+END $$;

@@ -110,7 +110,7 @@ export type PaymentPlan = {
   course_id: string;
   name: string;
   description: string;
-  amount: number;
+  fee: number;
   installment_count: number;
   children_count: number;
   effective_from: string | null;

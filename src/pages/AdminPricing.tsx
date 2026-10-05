@@ -15,7 +15,7 @@ export default function AdminPricing() {
     course_id: '',
     name: '',
     description: '',
-    amount: 0,
+    fee: 0,
     installment_count: 1,
     children_count: 1,
     sort_order: 0,
@@ -71,7 +71,7 @@ export default function AdminPricing() {
       course_id: courses[0]?.id || '',
       name: '',
       description: '',
-      amount: 250,
+      fee: 250,
       installment_count: 1,
       children_count: 1,
       sort_order: (data.length > 0 ? Math.max(...data.map(d => d.sort_order)) + 1 : 0),
@@ -197,7 +197,7 @@ export default function AdminPricing() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="space-y-0.5">
-                        <p className="font-black text-slate-900">RM {item.amount}</p>
+                        <p className="font-black text-slate-900">RM {item.fee}</p>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                           {item.installment_count} Installment{item.installment_count !== 1 && 's'}
                         </p>
@@ -265,8 +265,8 @@ export default function AdminPricing() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Total Amount (RM)</label>
-                  <input type="number" step="0.01" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700" value={formData.amount || ''} onChange={e => setFormData({...formData, amount: parseFloat(e.target.value)})} required />
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Total Fee (RM)</label>
+                  <input type="number" step="0.01" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700" value={formData.fee || ''} onChange={e => setFormData({...formData, fee: parseFloat(e.target.value)})} required />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Installment Count</label>
