@@ -127,7 +127,7 @@ export default function FAQPage() {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </a>
                 <a 
-                  href="#contact"
+                  href="/#contact"
                   className="w-full sm:w-auto bg-white/10 text-white border border-white/20 px-10 py-5 rounded-full text-lg font-bold hover:bg-white/20 transition-all flex items-center justify-center gap-2 backdrop-blur-sm"
                 >
                   Contact Support

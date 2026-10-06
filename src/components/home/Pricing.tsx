@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase, type PaymentPlan, type ClassSlot } from '../../lib/supabase';
-import { Calendar, Clock, MapPin, Users, Loader2 } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Loader2, RefreshCw } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 export default function Pricing() {
@@ -128,11 +128,18 @@ export default function Pricing() {
                             <span className="px-2 py-0.5 bg-slate-50 text-slate-500 text-[9px] font-black rounded uppercase tracking-widest">
                               {slot.age_groups.name} • Ages {slot.age_groups.min_age}-{slot.age_groups.max_age}
                             </span>
-                            {slot.online_meeting_url && (
+                            {slot.class_type === 'online' ? (
                               <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-[9px] font-black rounded uppercase tracking-widest flex items-center gap-1">
                                 <span className="w-1 h-1 bg-indigo-600 rounded-full animate-pulse" />
-                                Online Hybrid
+                                Online Class
                               </span>
+                            ) : (
+                              slot.online_meeting_url && (
+                                <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[9px] font-black rounded uppercase tracking-widest flex items-center gap-1">
+                                  <span className="w-1 h-1 bg-blue-600 rounded-full animate-pulse" />
+                                  Online Hybrid
+                                </span>
+                              )
                             )}
                           </div>
                         )}
@@ -140,15 +147,21 @@ export default function Pricing() {
                     </div>
 
                     <div className="space-y-4 flex-1">
-                      <div className="flex items-center gap-3 text-xs font-bold text-slate-600 uppercase tracking-widest">
-                        <Clock className="w-4 h-4 text-blue-500" />
-                        <span>{slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}</span>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex items-center gap-2 text-[10px] font-black text-blue-600 uppercase tracking-widest">
+                          <Calendar className="w-3.5 h-3.5" />
+                          Starts {new Date(slot.start_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                          <Clock className="w-3.5 h-3.5" />
+                          {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
+                        </div>
                       </div>
                       
                       <div className="flex items-center gap-3">
-                        <Users className="w-4 h-4 text-blue-500" />
+                        <Users className="w-4 h-4 text-blue-500 shrink-0" />
                         <span className={cn(
-                          "text-xs font-black uppercase tracking-widest",
+                          "text-[11px] md:text-xs font-black uppercase tracking-widest break-words whitespace-normal",
                           slot.seats_left <= 0 ? "text-rose-500" : "text-slate-900"
                         )}>
                           {slot.seats_left <= 0 ? "Full (Waitlist)" : `${slot.seats_left} of ${slot.total_seats} seats available`}
@@ -156,15 +169,22 @@ export default function Pricing() {
                       </div>
 
                       <div className="flex items-center gap-3 text-xs font-bold text-slate-500 uppercase tracking-widest">
-                        <MapPin className="w-4 h-4 text-blue-500" />
-                        <span>{isValidVenue ? slot.venue : "Venue not set"}</span>
+                        <MapPin className="w-4 h-4 text-blue-500 shrink-0" />
+                        <span>{slot.class_type === 'online' ? "Online Class" : (isValidVenue ? slot.venue : "Venue not set")}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg text-[9px] font-black text-slate-400 uppercase tracking-[0.15em]">
+                        <RefreshCw className="w-3 h-3" />
+                        Weekly Class
                       </div>
                     </div>
 
                     <div className="mt-6 pt-6 border-t border-slate-50">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Availability</span>
-                        <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest">{Math.max(0, Math.round((slot.seats_left / slot.total_seats) * 100))}% Left</span>
+                        <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest">
+                          {Math.max(0, Math.round((slot.seats_left / slot.total_seats) * 100))}% available
+                        </span>
                       </div>
                       <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden">
                         <div 

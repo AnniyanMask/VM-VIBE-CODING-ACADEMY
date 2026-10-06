@@ -170,7 +170,7 @@ export default function Register() {
                 <p className="text-slate-500">Create your account to manage your children's learning.</p>
                 <div className="flex gap-2 items-center p-3 bg-blue-50 text-blue-700 rounded-xl text-[10px] font-bold mt-2 border border-blue-100">
                   <MessageSquare className="w-3 h-3 shrink-0" />
-                  You can add your children's details next. It takes about 2 minutes.
+                  You can add your children's details next. It takes about 1 minutes.
                 </div>
               </div>
 

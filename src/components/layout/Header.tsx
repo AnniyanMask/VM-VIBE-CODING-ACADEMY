@@ -36,11 +36,25 @@ export default function Header() {
   };
 
   const navLinks = [
-    { name: 'Course', href: '#course' },
-    { name: 'Schedule', href: '#schedule' },
+    { name: 'Course', href: '/#course' },
+    { name: 'Schedule', href: '/#schedule' },
     { name: 'FAQ', href: '/faq' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'Contact', href: '/#contact' },
   ];
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith('/#')) {
+      if (window.location.pathname === '/') {
+        e.preventDefault();
+        const id = href.replace('/#', '');
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+          setIsOpen(false);
+        }
+      }
+    }
+  };
 
   return (
     <header 
@@ -62,6 +76,7 @@ export default function Header() {
               <a 
                 key={link.name} 
                 href={link.href} 
+                onClick={(e) => handleNavClick(e, link.href)}
                 className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors"
               >
                 {link.name}

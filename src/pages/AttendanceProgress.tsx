@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase, type Registration, type Attendance, type StudentProgress } from '../lib/supabase';
-import { ArrowLeft, Loader2, CheckCircle2, XCircle, Clock, MessageSquare, Target, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, CheckCircle2, XCircle, Clock, MessageSquare, Target, AlertCircle, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import { format } from 'date-fns';
@@ -33,7 +33,7 @@ export default function AttendanceProgress() {
 
     const { data } = await supabase
       .from('registrations')
-      .select('*')
+      .select('*, class_slots(*)')
       .eq('parent_id', session.user.id)
       .eq('status', 'approved');
 
@@ -102,6 +102,17 @@ export default function AttendanceProgress() {
                     <Target className="w-5 h-5 text-blue-600" />
                     Student Progress
                   </h2>
+                  {registrations.find(r => r.id === selectedReg)?.class_slots?.class_type === 'online' && registrations.find(r => r.id === selectedReg)?.class_slots?.online_meeting_url && (
+                    <a 
+                      href={registrations.find(r => r.id === selectedReg)?.class_slots?.online_meeting_url || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Join Online Class
+                    </a>
+                  )}
                 </div>
 
                 {dataLoading ? (

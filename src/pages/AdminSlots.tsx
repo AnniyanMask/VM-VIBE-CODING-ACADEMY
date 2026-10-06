@@ -17,7 +17,8 @@ export default function AdminSlots() {
     age_group_id: '',
     day_of_week: 'Saturday',
     start_time: '10:00:00',
-    end_time: '11:30:00',
+    end_time: '11:00:00',
+    class_type: 'physical',
     venue: '',
     online_meeting_url: '',
     start_date: '',
@@ -81,7 +82,8 @@ export default function AdminSlots() {
       age_group_id: ageGroups[0]?.id || '',
       day_of_week: 'Saturday',
       start_time: '10:00:00',
-      end_time: '11:30:00',
+      end_time: '11:00:00',
+      class_type: 'physical',
       venue: '',
       start_date: new Date().toISOString().split('T')[0],
       total_seats: 12,
@@ -98,6 +100,15 @@ export default function AdminSlots() {
     delete cleanData.age_groups;
 
     try {
+      // Validate start_date matches day_of_week
+      const date = new Date(formData.start_date);
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const selectedDay = days[date.getDay()];
+      
+      if (selectedDay !== formData.day_of_week) {
+        throw new Error(`Start Date must be a ${formData.day_of_week}. Selected date is a ${selectedDay}.`);
+      }
+
       if (editingId) {
         // Calculate new seats_left based on occupied count
         const oldData = data.find(d => d.id === editingId);
@@ -210,9 +221,13 @@ export default function AdminSlots() {
                     <td className="px-4 py-3">
                       <div className="space-y-0.5">
                         <p className="font-bold text-slate-900 flex items-center gap-2">
-                          <span className="text-blue-600">{item.day_of_week}s</span>
+                          <span className="text-blue-600">{item.day_of_week} • Weekly</span>
                           <span className="text-slate-300">•</span>
-                          <span>{item.start_time.slice(0, 5)}</span>
+                          <span>{item.start_time.slice(0, 5)}–{item.end_time.slice(0, 5)}</span>
+                        </p>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-2">
+                          <Calendar className="w-3 h-3 text-slate-400" />
+                          Starts: {new Date(item.start_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </p>
                         <p className="text-xs text-slate-500 font-medium">{item.courses?.name}</p>
                       </div>
@@ -220,8 +235,17 @@ export default function AdminSlots() {
                     <td className="px-6 py-4">
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                          <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                          {item.venue}
+                          {item.class_type === 'online' ? (
+                            <div className="flex items-center gap-2 text-blue-600">
+                              <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+                              Online Class
+                            </div>
+                          ) : (
+                            <>
+                              <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                              {item.venue}
+                            </>
+                          )}
                         </div>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                           <Users className="w-3 h-3" /> {item.age_groups?.name} Group
@@ -270,6 +294,27 @@ export default function AdminSlots() {
             </div>
             
             <form onSubmit={handleSave} className="p-8 space-y-6 overflow-y-auto no-scrollbar flex-1">
+              <div className="space-y-2">
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Class Type</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {['physical', 'online'].map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, class_type: type, venue: type === 'online' ? '' : formData.venue })}
+                      className={cn(
+                        "py-3 px-4 rounded-xl border-2 font-bold text-xs uppercase tracking-widest transition-all",
+                        formData.class_type === type 
+                          ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200" 
+                          : "bg-white border-slate-100 text-slate-400 hover:border-slate-200"
+                      )}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Course</label>
@@ -295,15 +340,36 @@ export default function AdminSlots() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Start Date</label>
-                  <input type="date" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold" value={formData.start_date || ''} onChange={e => setFormData({...formData, start_date: e.target.value})} required />
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Schedule Type</label>
+                  <div className="w-full p-4 bg-slate-100 border border-slate-200 rounded-2xl font-bold text-slate-400 flex items-center gap-2">
+                    <RefreshCw className="w-4 h-4" />
+                    Weekly Class
+                  </div>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Start Date (First Class)</label>
+                <input type="date" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold" value={formData.start_date || ''} onChange={e => setFormData({...formData, start_date: e.target.value})} required />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Start Time</label>
-                  <input type="time" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700" value={formData.start_time || ''} onChange={e => setFormData({...formData, start_time: e.target.value})} required />
+                  <input 
+                    type="time" 
+                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700" 
+                    value={formData.start_time || ''} 
+                    onChange={e => {
+                      const newStart = e.target.value;
+                      // Add 60 minutes for end_time
+                      const [h, m] = newStart.split(':').map(Number);
+                      const endH = (h + 1) % 24;
+                      const newEnd = `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                      setFormData({ ...formData, start_time: newStart, end_time: newEnd });
+                    }} 
+                    required 
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">End Time</label>
@@ -311,14 +377,24 @@ export default function AdminSlots() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Venue Name</label>
-                <input className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700" placeholder="e.g. KL Digital Hub" value={formData.venue || ''} onChange={e => setFormData({...formData, venue: e.target.value})} required />
-              </div>
+              {formData.class_type === 'physical' && (
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Venue Name</label>
+                  <input className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700" placeholder="e.g. KL Digital Hub" value={formData.venue || ''} onChange={e => setFormData({...formData, venue: e.target.value})} required />
+                </div>
+              )}
 
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Online Meeting URL (Optional)</label>
-                <input className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700" placeholder="e.g. https://zoom.us/j/..." value={formData.online_meeting_url || ''} onChange={e => setFormData({...formData, online_meeting_url: e.target.value})} />
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">
+                  {formData.class_type === 'online' ? 'Online Meeting URL' : 'Online Meeting URL (Optional)'}
+                </label>
+                <input 
+                  className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700" 
+                  placeholder="e.g. https://zoom.us/j/..." 
+                  value={formData.online_meeting_url || ''} 
+                  onChange={e => setFormData({...formData, online_meeting_url: e.target.value})} 
+                  required={formData.class_type === 'online'}
+                />
               </div>
 
               <div className="space-y-2">

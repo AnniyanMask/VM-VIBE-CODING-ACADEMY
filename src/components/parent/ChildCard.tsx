@@ -1,5 +1,5 @@
 import { type Registration } from '../../lib/supabase';
-import { User, CheckCircle2, Clock, CreditCard, ChevronRight } from 'lucide-react';
+import { User, CheckCircle2, Clock, CreditCard, ChevronRight, ExternalLink } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useNavigate } from 'react-router-dom';
 
@@ -101,12 +101,25 @@ export default function ChildCard({ registration, amountDue }: Props) {
             </div>
           )}
         </div>
-        <button 
-          onClick={() => navigate('/schedule')}
-          className="text-xs font-bold text-blue-600 hover:underline"
-        >
-          View Schedule
-        </button>
+        <div className="flex items-center gap-3">
+          {(registration.status === 'approved' || allPaid) && registration.class_slots?.class_type === 'online' && registration.class_slots?.online_meeting_url && (
+            <a 
+              href={registration.class_slots.online_meeting_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold text-[10px] uppercase tracking-wider hover:bg-blue-700 transition-all shadow-md shadow-blue-200"
+            >
+              <ExternalLink className="w-3 h-3" />
+              Join
+            </a>
+          )}
+          <button 
+            onClick={() => navigate('/schedule')}
+            className="text-xs font-bold text-blue-600 hover:underline"
+          >
+            View Schedule
+          </button>
+        </div>
       </div>
     </div>
   );

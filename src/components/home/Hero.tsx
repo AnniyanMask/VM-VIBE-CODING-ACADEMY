@@ -103,18 +103,22 @@ export default function Hero() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="mt-16 aspect-[16/9] bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl md:rounded-[32px] shadow-2xl overflow-hidden relative group"
+            className="mt-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl md:rounded-[32px] shadow-2xl overflow-hidden relative group"
           >
             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-40 mix-blend-overlay group-hover:scale-105 transition-transform duration-700" />
-            <div className="absolute inset-0 flex items-center justify-center p-8">
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-2xl max-w-lg text-left space-y-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mb-6">
-                  <div className="w-6 h-6 border-2 border-white rounded-md" />
+            
+            <div className="relative flex items-center justify-center p-6 md:p-12 lg:p-20">
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 md:p-8 rounded-2xl max-w-lg text-left space-y-4">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-500 rounded-xl flex items-center justify-center mb-4 md:mb-6">
+                  <div className="w-5 h-5 md:w-6 md:h-6 border-2 border-white rounded-md" />
                 </div>
-                <h3 className="text-2xl font-bold text-white">Future-Ready Skills</h3>
-                <p className="text-blue-50 text-sm leading-relaxed">
-                  "My son built his own homework tracker in just 4 weeks. He's more confident and excited about technology than ever before!" — Happy Parent
+                <h3 className="text-xl md:text-2xl font-bold text-white">Future-Ready Skills</h3>
+                <p className="text-blue-50 text-xs md:text-sm leading-relaxed italic">
+                  "My son built his own homework tracker in just 4 weeks. He's more confident and excited about technology than ever before!"
                 </p>
+                <div className="pt-4 border-t border-white/10">
+                  <p className="text-white font-bold text-sm">— Happy Parent</p>
+                </div>
               </div>
             </div>
           </motion.div>

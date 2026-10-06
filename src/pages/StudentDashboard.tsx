@@ -203,21 +203,19 @@ export default function StudentDashboard() {
                       <BookOpen className="w-4 h-4 text-blue-300" />
                       <span>{reg.class_slots?.courses?.name}</span>
                     </div>
-                    {reg.class_slots?.venue && (
-                      <div className="flex items-center gap-3 text-sm">
-                        <MapPin className="w-4 h-4 text-blue-300" />
-                        <span>{reg.class_slots.venue}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-3 text-sm">
+                      <MapPin className="w-4 h-4 text-blue-300" />
+                      <span>{reg.class_slots?.class_type === 'online' ? "Online Classroom" : (reg.class_slots?.venue || "Venue TBD")}</span>
+                    </div>
                   </div>
-                  {reg.class_slots?.online_meeting_url && (
+                  {(reg.class_slots?.class_type === 'online' || reg.class_slots?.online_meeting_url) && reg.class_slots?.online_meeting_url && (
                     <a 
                       href={reg.class_slots.online_meeting_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="block w-full bg-white text-blue-600 py-3 rounded-xl font-bold text-sm text-center hover:bg-blue-50 transition-colors"
                     >
-                      Join Online Lab
+                      Join Online Class
                     </a>
                   )}
                 </div>

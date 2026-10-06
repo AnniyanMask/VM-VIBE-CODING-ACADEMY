@@ -247,7 +247,7 @@ export default function ChildForm({ parentId, onSuccess, onSkip, enquiryId }: Pr
                     <option value="">Select a slot</option>
                     {slots.map(slot => (
                       <option key={slot.id} value={slot.id} disabled={slot.seats_left <= 0}>
-                        {slot.day_of_week} {slot.start_time.slice(0, 5)} ({slot.age_groups?.name}) — {slot.seats_left} seats left
+                        {slot.day_of_week} • Starts {new Date(slot.start_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} • {slot.start_time.slice(0, 5)}–{slot.end_time.slice(0, 5)} • {slot.seats_left} seats left
                       </option>
                     ))}
                   </select>

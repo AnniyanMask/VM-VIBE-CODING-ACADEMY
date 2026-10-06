@@ -44,8 +44,8 @@ export default function Footer() {
           <div className="space-y-6">
             <h4 className="text-white font-semibold">Quick Links</h4>
             <ul className="space-y-4">
-              <li><a href="#course" className="hover:text-blue-400 transition-colors">Course Syllabus</a></li>
-              <li><a href="#schedule" className="hover:text-blue-400 transition-colors">Class Schedule</a></li>
+              <li><a href="/#course" className="hover:text-blue-400 transition-colors">Course Syllabus</a></li>
+              <li><a href="/#schedule" className="hover:text-blue-400 transition-colors">Class Schedule</a></li>
               <li><a href="/faq" className="hover:text-blue-400 transition-colors">Common Questions</a></li>
               <li><a href="/register" className="hover:text-blue-400 transition-colors">Register Now</a></li>
             </ul>

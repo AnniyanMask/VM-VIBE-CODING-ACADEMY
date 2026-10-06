@@ -45,8 +45,8 @@ export default function NextClassCard({ registrations }: Props) {
       `DTSTART:${startTime}`,
       `DTEND:${endTime}`,
       `SUMMARY:Coding Class: ${next.student_name}`,
-      `DESCRIPTION:VM Vibe Academy - ${next.slot.courses?.name}`,
-      `LOCATION:${next.slot.venue}`,
+      `DESCRIPTION:VM Vibe Academy - ${next.slot.courses?.name}${next.slot.class_type === 'online' ? ` - Online Class: ${next.slot.online_meeting_url}` : ''}`,
+      `LOCATION:${next.slot.class_type === 'online' ? 'Online Class' : next.slot.venue}`,
       'END:VEVENT',
       'END:VCALENDAR'
     ].join('\n');
@@ -99,14 +99,28 @@ export default function NextClassCard({ registrations }: Props) {
         </div>
 
         <div className="pt-6 flex flex-wrap gap-3">
-          <a 
-            href={`https://maps.google.com/?q=${encodeURIComponent(next.slot.venue)}`}
-            target="_blank"
-            className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 bg-white text-slate-900 rounded-2xl font-bold text-sm hover:bg-blue-50 transition-colors"
-          >
-            <MapPin className="w-4 h-4 text-blue-600" />
-            Open Maps
-          </a>
+          {next.slot.class_type === 'online' ? (
+            next.slot.online_meeting_url && (
+              <a 
+                href={next.slot.online_meeting_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-4 bg-blue-600 text-white rounded-2xl font-black text-sm hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20"
+              >
+                <ExternalLink className="w-5 h-5" />
+                Join Online Class
+              </a>
+            )
+          ) : (
+            <a 
+              href={`https://maps.google.com/?q=${encodeURIComponent(next.slot.venue)}`}
+              target="_blank"
+              className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 bg-white text-slate-900 rounded-2xl font-bold text-sm hover:bg-blue-50 transition-colors"
+            >
+              <MapPin className="w-4 h-4 text-blue-600" />
+              Open Maps
+            </a>
+          )}
           <button 
             onClick={downloadICS}
             className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 bg-white/10 text-white rounded-2xl font-bold text-sm hover:bg-white/20 transition-colors border border-white/10"

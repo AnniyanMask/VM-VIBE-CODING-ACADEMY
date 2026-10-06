@@ -88,6 +88,7 @@ export type ClassSlot = {
   start_time: string;
   end_time: string;
   venue: string;
+  class_type: 'physical' | 'online';
   online_meeting_url: string | null;
   start_date: string;
   total_seats: number;
