@@ -24,10 +24,12 @@ export type SiteSettings = {
   email: string;
   address: string;
   maps_link: string;
+  map_embed_url?: string;
   facebook: string;
   instagram: string;
   operating_hours: string;
   venue_note: string;
+  transport_note?: string;
   privacy_policy: string;
   bank_info?: {
     bank_name: string;

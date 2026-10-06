@@ -721,12 +721,14 @@ INSERT INTO public.site_settings (key, value) VALUES
     "phone": "+60 12-345 6789",
     "whatsapp": "+60123456789",
     "email": "hello@vmvibe.my",
-    "address": "123 Jalan Ampang, Kuala Lumpur, 50450, Malaysia",
+    "address": "Promenade Bayan Lepas",
     "maps_link": "https://goo.gl/maps/example",
+    "map_embed_url": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3983.78453535!2d101.71!3d3.15!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zM8KwMDknMDAuMCJOIDEwMcKwNDInMzYuMCJF!5e0!3m2!1sen!2smy!4v1234567890",
     "facebook": "https://facebook.com/vmvibe",
     "instagram": "https://instagram.com/vmvibe",
     "operating_hours": "Mon-Fri: 9am - 6pm, Sat-Sun: 10am - 4pm",
-    "venue_note": "Free basement parking for parents during drop-off and pick-up.",
+    "venue_note": "Drop-off and pick-up.",
+    "transport_note": "Only 5-min walk from KLCC LRT station. Very convenient!",
     "privacy_policy": "Your privacy is important to us. We follow PDPA standards in Malaysia."
 }'),
 ('course_checklist', '[

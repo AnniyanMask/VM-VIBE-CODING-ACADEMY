@@ -175,21 +175,68 @@ export default function AdminSettings() {
             
             <form onSubmit={handleSave} className="p-8 space-y-6 overflow-y-auto no-scrollbar flex-1">
               {editingId === 'contact' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {Object.keys(formData.value || {}).map((key) => (
-                    <div key={key} className="space-y-1">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{key.replace('_', ' ')}</label>
-                      <textarea 
-                        className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-700"
-                        rows={key === 'address' || key === 'operating_hours' || key === 'venue_note' ? 3 : 1}
-                        value={formData.value[key]}
-                        onChange={e => {
-                          const newValue = { ...formData.value, [key]: e.target.value };
-                          setFormData({ ...formData, value: newValue });
-                        }}
-                      />
+                <div className="space-y-8">
+                  {/* General Info */}
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-black text-blue-600 uppercase tracking-widest px-1">General Contact</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {['phone', 'whatsapp', 'email'].map((key) => (
+                        <div key={key} className="space-y-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{key.replace('_', ' ')}</label>
+                          <input 
+                            className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-700"
+                            value={formData.value[key] || ''}
+                            onChange={e => {
+                              const newValue = { ...formData.value, [key]: e.target.value };
+                              setFormData({ ...formData, value: newValue });
+                            }}
+                          />
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Venue Details */}
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-black text-emerald-600 uppercase tracking-widest px-1">Venue & Location</h4>
+                    <div className="grid grid-cols-1 gap-4">
+                      {['address', 'operating_hours', 'venue_note', 'transport_note', 'map_embed_url'].map((key) => (
+                        <div key={key} className="space-y-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{key.replace('_', ' ')}</label>
+                          <textarea 
+                            className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-700"
+                            rows={key === 'map_embed_url' ? 2 : (key === 'address' || key === 'operating_hours' ? 2 : 1)}
+                            value={formData.value[key] || ''}
+                            onChange={e => {
+                              const newValue = { ...formData.value, [key]: e.target.value };
+                              setFormData({ ...formData, value: newValue });
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Socials & Policies */}
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-black text-amber-600 uppercase tracking-widest px-1">Socials & Privacy</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {['facebook', 'instagram', 'privacy_policy'].map((key) => (
+                        <div key={key} className={cn("space-y-1", key === 'privacy_policy' && "md:col-span-2")}>
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{key.replace('_', ' ')}</label>
+                          <textarea 
+                            className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-700"
+                            rows={key === 'privacy_policy' ? 3 : 1}
+                            value={formData.value[key] || ''}
+                            onChange={e => {
+                              const newValue = { ...formData.value, [key]: e.target.value };
+                              setFormData({ ...formData, value: newValue });
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
 
