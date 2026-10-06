@@ -35,7 +35,7 @@ export default function Register() {
         if (regs && regs.length > 0) {
           navigate('/dashboard');
         } else {
-          navigate('/add-child');
+          navigate('/dashboard/add-child');
         }
       }
     }

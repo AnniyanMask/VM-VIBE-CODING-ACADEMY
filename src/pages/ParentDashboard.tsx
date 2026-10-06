@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { supabase, type Registration, type Announcement, type SiteSettings, type PaymentSchedule } from '../lib/supabase';
 import { LogOut, User, MessageSquare, CreditCard, Megaphone, Bell, Settings, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/layout/Header';
 import AlertStrip from '../components/parent/AlertStrip';
 import ChildCard from '../components/parent/ChildCard';
 import NextClassCard from '../components/parent/NextClassCard';
@@ -40,10 +39,8 @@ export default function ParentDashboard() {
   const whatsappLink = settings?.whatsapp ? `https://wa.me/${settings.whatsapp.replace(/[^0-9]/g, '')}` : '#';
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Header />
-      
-      <main className="container mx-auto px-4 md:px-6 pt-24 pb-20 max-w-2xl">
+    <div className="space-y-8">
+      <main className="space-y-8">
         <div className="space-y-8">
           {/* Header Mobile */}
           <header className="flex justify-between items-center">
@@ -52,11 +49,11 @@ export default function ParentDashboard() {
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Parent Portal</p>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => navigate('/notifications')} className="p-3 bg-white rounded-2xl shadow-sm text-slate-500 relative">
+              <button onClick={() => navigate('/dashboard/notifications')} className="p-3 bg-white rounded-2xl shadow-sm text-slate-500 relative">
                 <Bell className="w-5 h-5" />
                 <div className="absolute top-3 right-3 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
               </button>
-              <button onClick={() => navigate('/profile')} className="p-3 bg-white rounded-2xl shadow-sm text-slate-500">
+              <button onClick={() => navigate('/dashboard/profile')} className="p-3 bg-white rounded-2xl shadow-sm text-slate-500">
                 <Settings className="w-5 h-5" />
               </button>
             </div>
@@ -72,7 +69,7 @@ export default function ParentDashboard() {
           <div className="space-y-4">
             <div className="flex justify-between items-end px-2">
               <h2 className="text-xl font-bold text-slate-900">Your Children</h2>
-              <button onClick={() => navigate('/children')} className="text-xs font-bold text-blue-600">Manage All</button>
+              <button onClick={() => navigate('/dashboard/children')} className="text-xs font-bold text-blue-600">Manage All</button>
             </div>
             
             <div className="grid grid-cols-1 gap-6">
@@ -93,30 +90,30 @@ export default function ParentDashboard() {
                     <p className="font-bold text-slate-900">No children registered yet</p>
                     <p className="text-sm text-slate-500">Add your child's details to begin their tech journey.</p>
                   </div>
-                  <button onClick={() => navigate('/add-child')} className="bg-blue-600 text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all">Add your child</button>
+                  <button onClick={() => navigate('/dashboard/add-child')} className="bg-blue-600 text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all">Add your child</button>
                 </div>
               )}
             </div>
           </div>
 
           {/* Quick Menu */}
-          <div className="grid grid-cols-2 gap-4">
-            <button onClick={() => navigate('/payments')} className="p-6 bg-white rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center text-center gap-3 transition-all hover:border-blue-200 group">
-              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:scale-110 transition-all">
-                <CreditCard className="w-6 h-6" />
+          <div className="grid grid-cols-2 gap-3">
+            <button onClick={() => navigate('/dashboard/payments')} className="p-4 bg-white rounded-[24px] border border-slate-100 shadow-sm flex items-center gap-3 transition-all hover:border-blue-200 group">
+              <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:scale-110 transition-all shrink-0">
+                <CreditCard className="w-5 h-5" />
               </div>
-              <div>
-                <p className="font-bold text-slate-900 text-sm">Payments</p>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Installments</p>
+              <div className="text-left">
+                <p className="font-bold text-slate-900 text-xs">Payments</p>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Installments</p>
               </div>
             </button>
-            <button onClick={() => navigate('/requests')} className="p-6 bg-white rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center text-center gap-3 transition-all hover:border-blue-200 group">
-              <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-all">
-                <MessageSquare className="w-6 h-6" />
+            <button onClick={() => navigate('/dashboard/requests')} className="p-4 bg-white rounded-[24px] border border-slate-100 shadow-sm flex items-center gap-3 transition-all hover:border-blue-200 group">
+              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-all shrink-0">
+                <MessageSquare className="w-5 h-5" />
               </div>
-              <div>
-                <p className="font-bold text-slate-900 text-sm">Requests</p>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Slot Changes</p>
+              <div className="text-left">
+                <p className="font-bold text-slate-900 text-xs">Requests</p>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Slot Changes</p>
               </div>
             </button>
           </div>
@@ -145,18 +142,18 @@ export default function ParentDashboard() {
           )}
 
           {/* Support Strip */}
-          <div className="p-8 bg-slate-900 rounded-[40px] text-white flex flex-col items-center text-center gap-6 shadow-2xl relative overflow-hidden">
+          <div className="p-6 bg-slate-900 rounded-[32px] text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden">
             <div className="absolute top-0 left-0 p-4 opacity-5">
-              <MessageSquare className="w-24 h-24 -rotate-12" />
+              <MessageSquare className="w-16 h-16 -rotate-12" />
             </div>
-            <div className="space-y-2 relative">
-              <h3 className="text-xl font-bold text-white">Need help?</h3>
-              <p className="text-sm text-slate-400">Our support team is available on WhatsApp daily.</p>
+            <div className="space-y-1 relative text-center md:text-left">
+              <h3 className="text-lg font-bold text-white">Need help?</h3>
+              <p className="text-xs text-slate-400">Our support team is available on WhatsApp daily.</p>
             </div>
             <a 
               href={whatsappLink}
               target="_blank"
-              className="w-full bg-white text-slate-900 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors relative shadow-lg"
+              className="bg-white text-slate-900 px-8 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors relative shadow-lg text-sm"
             >
               <MessageSquare className="w-5 h-5 text-green-500" />
               Chat on WhatsApp

@@ -23,13 +23,20 @@ export default function AdminRequests() {
 
   async function fetchData() {
     setLoading(true);
-    const { data } = await supabase
-      .from('parent_requests')
-      .select('*, profiles(*), registrations(*)')
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('parent_requests')
+        .select('*, profiles:parent_id(*), registrations:registration_id(*)')
+        .order('created_at', { ascending: false });
 
-    if (data) setRequests(data);
-    setLoading(false);
+      if (error) throw error;
+      if (data) setRequests(data);
+    } catch (err: any) {
+      console.error('Error fetching admin requests:', err);
+      alert(`Error fetching requests: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleUpdateStatus(status: string) {

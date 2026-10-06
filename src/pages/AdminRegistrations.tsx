@@ -37,16 +37,28 @@ export default function AdminRegistrations() {
 
   async function fetchData() {
     setLoading(true);
-    const [regsRes, slotsRes, settingsRes] = await Promise.all([
-      supabase.from('registrations').select('*, profiles(*), class_slots(*, courses(*), age_groups(*)), payment_plans(*), student_profile:student_user_id(*)').order('created_at', { ascending: false }),
-      supabase.from('class_slots').select('*, courses(*), age_groups(*)'),
-      supabase.from('site_settings').select('value').eq('key', 'message_templates').maybeSingle()
-    ]);
+    try {
+      const [regsRes, slotsRes, settingsRes] = await Promise.all([
+        supabase
+          .from('registrations')
+          .select('*, profiles:parent_id(*), class_slots(*, courses(*), age_groups(*)), payment_plans:payment_plan_id(*), student_profile:student_user_id(*)')
+          .order('created_at', { ascending: false }),
+        supabase.from('class_slots').select('*, courses(*), age_groups(*)'),
+        supabase.from('site_settings').select('value').eq('key', 'message_templates').maybeSingle()
+      ]);
 
-    if (regsRes.data) setRegistrations(regsRes.data as any);
-    if (slotsRes.data) setSlots(slotsRes.data as any);
-    if (settingsRes.data) setTemplates(settingsRes.data.value);
-    setLoading(false);
+      if (regsRes.error) throw regsRes.error;
+      if (slotsRes.error) throw slotsRes.error;
+
+      if (regsRes.data) setRegistrations(regsRes.data as any);
+      if (slotsRes.data) setSlots(slotsRes.data as any);
+      if (settingsRes.data) setTemplates(settingsRes.data.value);
+    } catch (err: any) {
+      console.error('Error fetching admin registrations:', err);
+      alert(`Error fetching registrations: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
   function getWhatsAppLink(reg: Registration) {
@@ -158,7 +170,7 @@ export default function AdminRegistrations() {
       r.profiles?.phone,
       `${r.class_slots?.day_of_week} ${r.class_slots?.start_time}`,
       r.status,
-      r.lead_source || 'Unknown',
+      (r as any).lead_source || 'Unknown',
       r.media_consent ? 'Yes' : 'No',
       new Date(r.created_at).toLocaleDateString()
     ]);
@@ -263,7 +275,7 @@ export default function AdminRegistrations() {
                 </div>
 
                 <div className="flex-1 max-w-md">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Source: {reg.lead_source || 'Unknown'}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Source: {(reg as any).lead_source || 'Unknown'}</p>
                   <p className="font-bold text-slate-900">{reg.profiles?.full_name}</p>
                   <div className="flex flex-wrap gap-4 mt-1">
                     <a href={`mailto:${reg.profiles?.email}`} className="text-xs text-blue-600 hover:underline flex items-center gap-1 font-medium">

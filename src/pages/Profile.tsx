@@ -129,9 +129,8 @@ export default function ProfilePage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Header />
-      <main className="container mx-auto px-4 md:px-6 pt-24 pb-20 max-w-2xl">
+    <div className="min-h-screen">
+      <main className="container mx-auto space-y-8">
         <div className="space-y-8">
           <header>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Profile Settings</h1>
@@ -255,18 +254,6 @@ export default function ProfilePage() {
             >
               {saving ? <Loader2 className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}
               Save All Changes
-            </button>
-
-            <button 
-              type="button"
-              onClick={async () => {
-                await supabase.auth.signOut();
-                navigate('/login');
-              }}
-              className="w-full py-5 rounded-[24px] font-bold text-rose-500 border-2 border-rose-100 hover:bg-rose-50 transition-all flex items-center justify-center gap-2"
-            >
-              <LogOut className="w-5 h-5" />
-              Log Out
             </button>
           </form>
         </div>

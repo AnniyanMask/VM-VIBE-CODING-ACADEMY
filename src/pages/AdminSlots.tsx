@@ -110,17 +110,6 @@ export default function AdminSlots() {
       }
 
       if (editingId) {
-        // Calculate new seats_left based on occupied count
-        const oldData = data.find(d => d.id === editingId);
-        const occupied = (oldData?.total_seats || 0) - (oldData?.seats_left || 0);
-        const newSeatsLeft = cleanData.total_seats - occupied;
-
-        if (newSeatsLeft < 0) {
-          throw new Error("Total seats cannot be lower than the number of occupied seats.");
-        }
-
-        cleanData.seats_left = newSeatsLeft;
-
         const { error } = await supabase.from('class_slots').update(cleanData).eq('id', editingId);
         if (error) throw error;
         
@@ -133,9 +122,7 @@ export default function AdminSlots() {
 
         showMessage('success', 'Updated successfully');
       } else {
-        // For new slots, seats_left = total_seats
-        cleanData.seats_left = cleanData.total_seats;
-        
+        // For new slots, the database trigger will set seats_left = total_seats
         const { data: insertedData, error } = await supabase.from('class_slots').insert(cleanData).select().single();
         if (error) throw error;
 
@@ -192,6 +179,23 @@ export default function AdminSlots() {
           <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Schedule Management</p>
         </div>
         <div className="flex gap-2">
+          <button 
+            onClick={async () => {
+              const { error } = await supabase.rpc('recalculate_all_seats');
+              if (error) {
+                console.error(error);
+                showMessage('error', 'Failed to sync seats');
+              } else {
+                fetchData();
+                showMessage('success', 'Seats recalculated and synced');
+              }
+            }}
+            className="p-2 bg-white border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 transition-all shadow-sm flex items-center gap-2"
+            title="Recalculate all seats"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span className="text-[10px] font-black uppercase tracking-tight">Recalculate Seats</span>
+          </button>
           <button onClick={fetchData} className="p-2 bg-white border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 transition-all shadow-sm">
             <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
           </button>
@@ -211,6 +215,7 @@ export default function AdminSlots() {
                 <tr>
                   <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Timing & Course</th>
                   <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Venue / Group</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Seats</th>
                   <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
                   <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                 </tr>
@@ -252,7 +257,22 @@ export default function AdminSlots() {
                         </p>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-3">
+                      <div className="space-y-0.5">
+                        <p className="font-bold text-slate-900 flex items-center gap-2">
+                          <span className={cn(
+                            "px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest",
+                            item.seats_left <= 0 ? "bg-rose-50 text-rose-600" : "bg-blue-50 text-blue-600"
+                          )}>
+                            {item.seats_left} / {item.total_seats}
+                          </span>
+                        </p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                          {Math.round((item.seats_left / item.total_seats) * 100)}% left
+                        </p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
                       <button 
                         onClick={() => toggleActive(item)}
                         className={cn(

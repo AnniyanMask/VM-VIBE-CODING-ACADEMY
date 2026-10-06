@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { supabase, logActivity } from '../lib/supabase';
 import { 
-  Plus, Trash2, Edit3, Check, X, RefreshCw, Loader2, CreditCard, Save, AlertCircle, Upload, Copy, MoveUp, MoveDown
+  Plus, Trash2, Edit3, Check, X, RefreshCw, Loader2, CreditCard, Save, AlertCircle, Copy, MoveUp, MoveDown
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { CustomUploadIcon } from '../components/icons/CustomUploadIcon';
 import ConfirmDialog from '../components/admin/ConfirmDialog';
 
 export default function AdminPaymentAccounts() {
@@ -323,7 +324,7 @@ export default function AdminPaymentAccounts() {
                         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
                       ) : (
                         <>
-                          <Upload className="w-6 h-6 text-blue-600 mb-2" />
+                          <CustomUploadIcon className="w-6 h-6 text-blue-600 mb-2" />
                           <span className="text-xs font-bold text-slate-600">{formData.qr_path ? 'Change QR Image' : 'Upload QR Image'}</span>
                           <span className="text-[10px] text-slate-400 mt-1 uppercase">JPG, PNG (Max 2MB)</span>
                         </>

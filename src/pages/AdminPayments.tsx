@@ -25,12 +25,13 @@ export default function AdminPayments() {
       setLoading(true);
       const { data, error } = await supabase
         .from('payment_schedules')
-        .select('*, profiles(full_name, email), payments(*), registrations(student_name, discount_amount)')
+        .select('*, profiles:parent_id(full_name, email), payments(*), registrations:registration_id(student_name)')
         .order('due_date', { ascending: true });
 
       if (error) throw error;
       setSchedules(data as any);
     } catch (err: any) {
+      console.error('Error fetching admin payments:', err);
       alert(`Error fetching payments: ${err.message}`);
     } finally {
       setLoading(false);
@@ -212,7 +213,7 @@ export default function AdminPayments() {
                         </div>
                         {(schedule as any).registrations?.discount_amount > 0 && (
                           <p className="text-[9px] font-bold text-amber-600 uppercase tracking-widest mt-0.5">
-                            Reg. Discount RM {(schedule as any).registrations.discount_amount}
+                            Reg. Discount RM {(schedule as any).registrations?.discount_amount || 0}
                           </p>
                         )}
                       </div>

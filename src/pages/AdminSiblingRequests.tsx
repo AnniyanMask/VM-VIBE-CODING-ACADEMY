@@ -17,14 +17,25 @@ export default function AdminSiblingRequests() {
 
   async function fetchData() {
     setLoading(true);
-    const [reqsRes, slotsRes] = await Promise.all([
-      supabase.from('sibling_requests').select('*, registrations(*, profiles(*), class_slots(*, courses(*), age_groups(*)))').order('created_at', { ascending: false }),
-      supabase.from('class_slots').select('*, courses(*), age_groups(*)').eq('is_active', true)
-    ]);
+    try {
+      const [reqsRes, slotsRes] = await Promise.all([
+        supabase
+          .from('sibling_requests')
+          .select('*, registrations:registration_id(*, profiles:parent_id(*), class_slots(*, courses(*), age_groups(*)))')
+          .order('created_at', { ascending: false }),
+        supabase.from('class_slots').select('*, courses(*), age_groups(*)').eq('is_active', true)
+      ]);
 
-    if (reqsRes.data) setRequests(reqsRes.data as any);
-    if (slotsRes.data) setSlots(slotsRes.data as any);
-    setLoading(false);
+      if (reqsRes.error) throw reqsRes.error;
+      if (slotsRes.error) throw slotsRes.error;
+
+      if (reqsRes.data) setRequests(reqsRes.data as any);
+      if (slotsRes.data) setSlots(slotsRes.data as any);
+    } catch (err: any) {
+      console.error('Error fetching sibling requests:', err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function updateRequest(id: string, status: SiblingRequest['status']) {

@@ -40,11 +40,20 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import FAQPage from './pages/FAQPage';
 import AdminLayout from './components/admin/AdminLayout';
+import ParentLayout from './components/parent/ParentLayout';
 
 // Shared Admin Wrapper to check role
 const AdminRoute = ({ children, role }: { children: React.ReactNode, role: string | undefined }) => {
   if (role !== 'admin') return <Navigate to="/admin-login" />;
   return <AdminLayout>{children}</AdminLayout>;
+};
+
+// Shared Parent Wrapper
+const ParentRoute = ({ children, profile }: { children: React.ReactNode, profile: Profile | null }) => {
+  if (!profile) return <Navigate to="/login" />;
+  if (profile.role === 'admin') return <Navigate to="/admin" />;
+  if (profile.role === 'student') return <Navigate to="/dashboard" />; // Student dashboard is direct
+  return <ParentLayout>{children}</ParentLayout>;
 };
 
 export default function App() {
@@ -171,27 +180,33 @@ export default function App() {
         <Route path="/admin/logs" element={<AdminRoute role={profile?.role}><AdminLogs /></AdminRoute>} />
 
         {/* Parent Routes */}
-        <Route 
-          path="/dashboard" 
-          element={
-            profile?.role === 'admin' ? <Navigate to="/admin" /> :
-            profile?.role === 'student' ? <StudentDashboard /> :
-            profile ? <ParentDashboard /> : <Navigate to="/login" />
-          } 
-        />
-        <Route path="/payments" element={profile ? <ParentPayments /> : <Navigate to="/login" />} />
-        <Route path="/children" element={profile ? <MyChildren /> : <Navigate to="/login" />} />
-        <Route path="/schedule" element={profile ? <Schedule /> : <Navigate to="/login" />} />
-        <Route path="/attendance" element={profile ? <AttendanceProgress /> : <Navigate to="/login" />} />
-        <Route path="/requests" element={profile ? <Requests /> : <Navigate to="/login" />} />
-        <Route path="/notifications" element={profile ? <Notifications /> : <Navigate to="/login" />} />
-        <Route path="/profile" element={profile ? <ProfilePage /> : <Navigate to="/login" />} />
-        <Route path="/help" element={profile ? <Help /> : <Navigate to="/login" />} />
+        <Route path="/dashboard" element={<ParentRoute profile={profile}><ParentDashboard /></ParentRoute>} />
+        <Route path="/dashboard/payments" element={<ParentRoute profile={profile}><ParentPayments /></ParentRoute>} />
+        <Route path="/dashboard/children" element={<ParentRoute profile={profile}><MyChildren /></ParentRoute>} />
+        <Route path="/dashboard/schedule" element={<ParentRoute profile={profile}><Schedule /></ParentRoute>} />
+        <Route path="/dashboard/attendance" element={<ParentRoute profile={profile}><AttendanceProgress /></ParentRoute>} />
+        <Route path="/dashboard/learning-progress" element={<ParentRoute profile={profile}><AttendanceProgress /></ParentRoute>} />
+        <Route path="/dashboard/requests" element={<ParentRoute profile={profile}><Requests /></ParentRoute>} />
+        <Route path="/dashboard/notifications" element={<ParentRoute profile={profile}><Notifications /></ParentRoute>} />
+        <Route path="/dashboard/profile" element={<ParentRoute profile={profile}><ProfilePage /></ParentRoute>} />
+        <Route path="/dashboard/help" element={<ParentRoute profile={profile}><Help /></ParentRoute>} />
+        <Route path="/dashboard/add-child" element={<ParentRoute profile={profile}><AddChild /></ParentRoute>} />
+        
+        {/* Legacy Redirects */}
+        <Route path="/payments" element={<Navigate to="/dashboard/payments" replace />} />
+        <Route path="/children" element={<Navigate to="/dashboard/children" replace />} />
+        <Route path="/schedule" element={<Navigate to="/dashboard/schedule" replace />} />
+        <Route path="/attendance" element={<Navigate to="/dashboard/attendance" replace />} />
+        <Route path="/requests" element={<Navigate to="/dashboard/requests" replace />} />
+        <Route path="/notifications" element={<Navigate to="/dashboard/notifications" replace />} />
+        <Route path="/profile" element={<Navigate to="/dashboard/profile" replace />} />
+        <Route path="/help" element={<Navigate to="/dashboard/help" replace />} />
+        <Route path="/add-child" element={<Navigate to="/dashboard/add-child" replace />} />
+        <Route path="/dashboard/add-student" element={<Navigate to="/dashboard/add-child" replace />} />
+        
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/faq" element={<FAQPage />} />
-        <Route path="/add-child" element={profile ? <AddChild /> : <Navigate to="/login" />} />
-        <Route path="/dashboard/add-student" element={<Navigate to="/add-child" replace />} />
         
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

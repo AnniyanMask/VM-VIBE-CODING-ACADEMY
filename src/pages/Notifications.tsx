@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Bell, Check, Trash2, Loader2, Info, AlertCircle, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/layout/Header';
 import { cn } from '../lib/utils';
 
 type Notification = {
@@ -69,9 +68,8 @@ export default function Notifications() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Header />
-      <main className="container mx-auto px-4 md:px-6 pt-24 pb-20 max-w-2xl">
+    <div className="min-h-screen">
+      <main className="container mx-auto space-y-8">
         <div className="space-y-6">
           <header className="flex justify-between items-center">
             <div>

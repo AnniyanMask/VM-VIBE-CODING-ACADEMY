@@ -49,9 +49,8 @@ export default function HelpPage() {
   const whatsappLink = settings?.whatsapp ? `https://wa.me/${settings.whatsapp.replace(/[^0-9]/g, '')}` : '#';
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Header />
-      <main className="container mx-auto px-4 md:px-6 pt-24 pb-20 max-w-2xl">
+    <div className="min-h-screen">
+      <main className="container mx-auto space-y-8">
         <div className="space-y-12">
           <header className="text-center space-y-2">
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">How can we help?</h1>
@@ -91,41 +90,6 @@ export default function HelpPage() {
                   );
                 })}
               </div>
-            </div>
-          </section>
-
-          {/* FAQs */}
-          <section className="space-y-6">
-            <div className="flex items-center gap-2 px-2">
-              <HelpCircle className="w-5 h-5 text-blue-600" />
-              <h2 className="text-xl font-bold text-slate-900">Common Questions</h2>
-            </div>
-
-            <div className="space-y-3">
-              {faqs.map((faq) => (
-                <div 
-                  key={faq.id}
-                  className={cn(
-                    "bg-white rounded-3xl border transition-all overflow-hidden",
-                    openFaq === faq.id ? "border-blue-200 shadow-md" : "border-slate-100 hover:border-slate-200"
-                  )}
-                >
-                  <button 
-                    onClick={() => setOpenFaq(openFaq === faq.id ? null : faq.id)}
-                    className="w-full p-6 text-left flex justify-between items-center gap-4"
-                  >
-                    <span className="font-bold text-slate-900">{faq.question}</span>
-                    <ChevronDown className={cn("w-5 h-5 text-slate-400 transition-transform", openFaq === faq.id && "rotate-180")} />
-                  </button>
-                  {openFaq === faq.id && (
-                    <div className="px-6 pb-6 animate-in slide-in-from-top-2 duration-300">
-                      <p className="text-sm text-slate-500 leading-relaxed pt-2 border-t border-slate-50">
-                        {faq.answer}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ))}
             </div>
           </section>
 

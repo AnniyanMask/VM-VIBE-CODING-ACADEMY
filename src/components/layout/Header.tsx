@@ -1,15 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, MessageSquare, User, LogOut } from 'lucide-react';
+import { 
+  Menu, X, User, LogOut, LayoutDashboard, Users, UserPlus, 
+  CreditCard, MessageSquare, Calendar, Bell, UserCircle, HelpCircle 
+} from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { supabase } from '../../lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [profile, setProfile] = useState<any>(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -17,10 +22,21 @@ export default function Header() {
     
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle().then(({ data }) => {
+          setProfile(data);
+        });
+      }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+        setProfile(data);
+      } else {
+        setProfile(null);
+      }
     });
 
     return () => {
@@ -32,14 +48,27 @@ export default function Header() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setIsOpen(false);
-    navigate('/');
+    navigate('/login');
   };
+
+  const isParent = profile?.role === 'parent';
 
   const navLinks = [
     { name: 'Course', href: '/#course' },
     { name: 'Schedule', href: '/#schedule' },
     { name: 'FAQ', href: '/faq' },
     { name: 'Contact', href: '/#contact' },
+  ];
+
+  const parentLinks = [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'My Children', href: '/dashboard/children', icon: Users },
+    { name: 'Add Child', href: '/dashboard/add-child', icon: UserPlus },
+    { name: 'Payments', href: '/dashboard/payments', icon: CreditCard },
+    { name: 'Requests', href: '/dashboard/requests', icon: MessageSquare },
+    { name: 'Announcements', href: '/dashboard/notifications', icon: Bell },
+    { name: 'Profile / Settings', href: '/dashboard/profile', icon: UserCircle },
+    { name: 'Help / Contact', href: '/dashboard/help', icon: HelpCircle },
   ];
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -71,18 +100,20 @@ export default function Header() {
           </a>
 
           {/* Zone 2: Nav links (Desktop) */}
-          <nav className="hidden lg:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <a 
-                key={link.name} 
-                href={link.href} 
-                onClick={(e) => handleNavClick(e, link.href)}
-                className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors"
-              >
-                {link.name}
-              </a>
-            ))}
-          </nav>
+          {!user && (
+            <nav className="hidden lg:flex items-center gap-8">
+              {navLinks.map((link) => (
+                <a 
+                  key={link.name} 
+                  href={link.href} 
+                  onClick={(e) => handleNavClick(e, link.href)}
+                  className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors"
+                >
+                  {link.name}
+                </a>
+              ))}
+            </nav>
+          )}
 
           {/* Zone 3: Actions */}
           <div className="flex items-center gap-4">
@@ -164,58 +195,89 @@ export default function Header() {
 
       {/* Mobile Nav Overlay */}
       {isOpen && (
-        <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-t border-slate-100 shadow-xl p-6 flex flex-col gap-6 animate-in slide-in-from-top duration-300">
-          <nav className="flex flex-col gap-6">
-            {navLinks.map((link) => (
-              <a 
-                key={link.name} 
-                href={link.href} 
-                className="text-lg font-medium text-slate-900"
-                onClick={() => setIsOpen(false)}
-              >
-                {link.name}
-              </a>
-            ))}
-          </nav>
-
-          <div className="flex flex-col gap-4 pt-6 border-t border-slate-100">
-            {user ? (
-              <>
+        <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-t border-slate-100 shadow-xl p-6 flex flex-col gap-6 animate-in slide-in-from-top duration-300 max-h-[85vh] overflow-y-auto">
+          {user && isParent ? (
+            <div className="grid grid-cols-1 gap-1">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-4 py-2">Parent Menu</p>
+              {parentLinks.map((link) => (
                 <a 
-                  href="/dashboard" 
-                  className="flex items-center gap-3 text-lg font-bold text-blue-600"
+                  key={link.name} 
+                  href={link.href} 
+                  className={cn(
+                    "flex items-center gap-4 px-4 py-3 rounded-xl text-base font-bold transition-all",
+                    location.pathname === link.href ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" : "text-slate-600 hover:bg-blue-50"
+                  )}
                   onClick={() => setIsOpen(false)}
                 >
-                  <User className="w-5 h-5" />
-                  Dashboard
+                  <link.icon className={cn("w-5 h-5", location.pathname === link.href ? "text-white" : "text-slate-400")} />
+                  {link.name}
                 </a>
+              ))}
+              <div className="mt-4 pt-4 border-t border-slate-100">
                 <button 
                   onClick={handleLogout}
-                  className="flex items-center gap-3 text-lg font-medium text-slate-500 hover:text-rose-500 transition-colors"
+                  className="w-full flex items-center gap-4 px-4 py-4 text-slate-500 font-bold hover:text-rose-600 transition-colors"
                 >
                   <LogOut className="w-5 h-5" />
                   Logout
                 </button>
-              </>
-            ) : (
-              <>
-                <a 
-                  href="/login" 
-                  className="text-lg font-medium text-slate-900"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Login
-                </a>
-                <a 
-                  href="/register" 
-                  className="bg-blue-600 text-white px-6 py-4 rounded-2xl text-center font-bold shadow-lg shadow-blue-500/10"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Register Now
-                </a>
-              </>
-            )}
-          </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <nav className="flex flex-col gap-6">
+                {navLinks.map((link) => (
+                  <a 
+                    key={link.name} 
+                    href={link.href} 
+                    className="text-lg font-medium text-slate-900"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {link.name}
+                  </a>
+                ))}
+              </nav>
+
+              <div className="flex flex-col gap-4 pt-6 border-t border-slate-100">
+                {user ? (
+                  <>
+                    <a 
+                      href="/dashboard" 
+                      className="flex items-center gap-3 text-lg font-bold text-blue-600"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <User className="w-5 h-5" />
+                      Dashboard
+                    </a>
+                    <button 
+                      onClick={handleLogout}
+                      className="flex items-center gap-3 text-lg font-medium text-slate-500 hover:text-rose-500 transition-colors"
+                    >
+                      <LogOut className="w-5 h-5" />
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <a 
+                      href="/login" 
+                      className="text-lg font-medium text-slate-900"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Login
+                    </a>
+                    <a 
+                      href="/register" 
+                      className="bg-blue-600 text-white px-6 py-4 rounded-2xl text-center font-bold shadow-lg shadow-blue-500/10"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Register Now
+                    </a>
+                  </>
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
     </header>

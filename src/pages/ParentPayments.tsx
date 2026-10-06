@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { supabase, type PaymentSchedule, type Payment } from '../lib/supabase';
-import { Upload, FileText, CheckCircle2, AlertCircle, Clock, Loader2, ArrowLeft, MessageSquare, CreditCard, Copy, Check } from 'lucide-react';
+import { FileText, CheckCircle2, AlertCircle, Clock, Loader2, ArrowLeft, MessageSquare, CreditCard, Copy, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/layout/Header';
 import { cn } from '../lib/utils';
+import { CustomUploadIcon } from '../components/icons/CustomUploadIcon';
 
 export default function ParentPayments() {
   const [schedules, setSchedules] = useState<PaymentSchedule[]>([]);
@@ -93,9 +93,8 @@ export default function ParentPayments() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Header />
-      <main className="container mx-auto px-4 md:px-6 pt-32 pb-20">
+    <div className="min-h-screen">
+      <main className="container mx-auto space-y-8">
         <div className="max-w-4xl mx-auto space-y-8">
           <header className="flex items-center gap-4">
             <button onClick={() => navigate('/dashboard')} className="p-2 bg-white rounded-xl shadow-sm text-slate-500 hover:text-blue-600">
@@ -176,8 +175,8 @@ export default function ParentPayments() {
                       </div>
                     </div>
 
-                    <div className="lg:w-64 space-y-4">
-                      <div className="bg-white p-4 rounded-3xl shadow-lg aspect-square flex items-center justify-center overflow-hidden">
+                    <div className="w-32 lg:w-32 mx-auto lg:mx-0 space-y-4">
+                      <div className="bg-white p-3 rounded-2xl shadow-lg aspect-square flex items-center justify-center overflow-hidden">
                         {acc.qr_url ? (
                           <img src={acc.qr_url} alt="Payment QR" className="w-full h-full object-contain" />
                         ) : (
@@ -200,7 +199,12 @@ export default function ParentPayments() {
               <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
             </div>
           ) : schedules.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6">
+            <div className="space-y-6">
+              <div className="flex justify-between items-end px-2">
+                <h2 className="text-xl font-bold text-slate-900">Your Installments</h2>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Upload Slips Below</span>
+              </div>
+              <div className="grid grid-cols-1 gap-6">
               {schedules.map((schedule) => (
                 <div key={schedule.id} className={cn(
                   "bg-white rounded-3xl border shadow-sm overflow-hidden transition-all",
@@ -280,12 +284,12 @@ export default function ParentPayments() {
                             </>
                           ) : (
                             <>
-                              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
-                                <Upload className="w-6 h-6" />
+                              <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-blue-200">
+                                <CustomUploadIcon className="w-6 h-6" />
                               </div>
                               <div className="text-center">
-                                <p className="text-sm font-bold text-slate-700">Upload Slip</p>
-                                <p className="text-[10px] text-slate-500 uppercase mt-1">JPG, PNG, PDF</p>
+                                <p className="text-sm font-black text-blue-600 uppercase tracking-tight">Click to Upload Transfer Slip</p>
+                                <p className="text-[9px] font-bold text-slate-400 uppercase mt-1">Select JPG, PNG or PDF (Max 5MB)</p>
                               </div>
                             </>
                           )}
@@ -303,7 +307,8 @@ export default function ParentPayments() {
                 </div>
               ))}
             </div>
-          ) : (
+          </div>
+        ) : (
             <div className="text-center py-20 bg-white rounded-3xl border border-slate-100">
               <p className="text-slate-500">No payment records found.</p>
             </div>

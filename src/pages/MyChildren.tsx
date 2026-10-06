@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { supabase, type Registration, type AgeGroup, type ClassSlot, type PaymentPlan } from '../lib/supabase';
 import { User, School, BookOpen, Edit3, Plus, ArrowLeft, Loader2, Save, X, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/layout/Header';
 import { calculateAge, cn } from '../lib/utils';
 
 export default function MyChildren() {
@@ -52,9 +51,9 @@ export default function MyChildren() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Header />
-      <main className="container mx-auto px-4 md:px-6 pt-24 pb-20 max-w-2xl">
+    <div className="min-h-screen">
+      
+      <main className="container mx-auto space-y-8">
         <div className="space-y-8">
           <header className="flex items-center gap-4">
             <button onClick={() => navigate('/dashboard')} className="p-2 bg-white rounded-xl shadow-sm text-slate-500 hover:text-blue-600">
@@ -143,7 +142,7 @@ export default function MyChildren() {
                   <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex gap-3">
                     <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
                     <p className="text-[10px] text-amber-700 leading-relaxed font-medium">
-                      To change <strong>Date of Birth</strong> or <strong>Class Slot</strong>, please submit a <button onClick={() => navigate('/requests')} className="underline font-bold">Change Request</button> to our admin team.
+                      To change <strong>Date of Birth</strong> or <strong>Class Slot</strong>, please submit a <button onClick={() => navigate('/dashboard/requests')} className="underline font-bold">Change Request</button> to our admin team.
                     </p>
                   </div>
                 </div>
@@ -151,7 +150,7 @@ export default function MyChildren() {
             ))}
 
             <button 
-              onClick={() => navigate('/add-child')}
+              onClick={() => navigate('/dashboard/add-child')}
               className="w-full py-8 border-2 border-dashed border-slate-200 rounded-[40px] text-slate-400 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50/50 transition-all flex flex-col items-center justify-center gap-2 font-bold"
             >
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">

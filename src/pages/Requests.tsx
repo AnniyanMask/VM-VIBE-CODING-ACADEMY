@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { supabase, type Registration, type ParentRequest } from '../lib/supabase';
 import { MessageSquare, ArrowLeft, Loader2, Send, Clock, CheckCircle2, XCircle, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/layout/Header';
 import { cn } from '../lib/utils';
 
 export default function Requests() {
@@ -58,9 +57,8 @@ export default function Requests() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Header />
-      <main className="container mx-auto px-4 md:px-6 pt-24 pb-20 max-w-2xl">
+    <div className="min-h-screen">
+      <main className="container mx-auto space-y-8">
         <div className="space-y-8">
           <header className="flex items-center justify-between">
             <div className="flex items-center gap-4">

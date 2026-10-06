@@ -36,8 +36,8 @@ export default function ChildForm({ parentId, onSuccess, onSkip, enquiryId }: Pr
   useEffect(() => {
     async function fetchData() {
       const [slotsRes, ageGroupsRes, availRes, plansRes, controlRes] = await Promise.all([
-        supabase.from('class_slots').select('*, age_groups(*), courses(*)'),
-        supabase.from('age_groups').select('*'),
+        supabase.from('class_slots').select('*, age_groups(*), courses(*)').eq('is_active', true),
+        supabase.from('age_groups').select('*').eq('is_active', true),
         supabase.from('slot_availability').select('*'),
         supabase.from('payment_plans').select('*').eq('is_active', true),
         supabase.from('site_settings').select('value').eq('key', 'registration_control').single()
@@ -46,7 +46,8 @@ export default function ChildForm({ parentId, onSuccess, onSkip, enquiryId }: Pr
       if (slotsRes.data && availRes.data) {
         const slotsWithAvail = slotsRes.data.map(slot => {
           const avail = availRes.data.find(a => a.slot_id === slot.id);
-          return { ...slot, seats_left: avail?.seats_left ?? slot.total_seats };
+          // Use calculated seats_left from view for absolute consistency
+          return { ...slot, seats_left: avail?.seats_left ?? slot.seats_left };
         });
         setSlots(slotsWithAvail);
       }
@@ -95,12 +96,23 @@ export default function ChildForm({ parentId, onSuccess, onSkip, enquiryId }: Pr
     setError(null);
 
     try {
+      // 0. Preliminary seat check in frontend state
+      // We still do this to prevent unnecessary server calls, 
+      // but the database trigger is the final authority.
+      const initialStatus = regControl?.status === 'waitlist' ? 'waitlist' : 'pending';
+      
+      for (const s of students) {
+        const slot = slots.find(sl => sl.id === s.slotId);
+        if (slot && slot.seats_left <= 0 && initialStatus !== 'waitlist') {
+          throw new Error(`No seats available for the selected slot (${slot.day_of_week}).`);
+        }
+      }
+
       const groupId = crypto.randomUUID();
       const selectedPlan = paymentPlans.find(p => p.id === paymentPlanId);
       const multiplier = (selectedPlan?.children_count === 1) ? students.length : 1;
 
       // 1. Prepare registrations
-      const initialStatus = regControl?.status === 'waitlist' ? 'waitlist' : 'pending';
       
       const registrations = students.map(s => ({
         parent_id: parentId,

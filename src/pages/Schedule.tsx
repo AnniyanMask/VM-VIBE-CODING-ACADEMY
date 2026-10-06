@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { supabase, type Registration } from '../lib/supabase';
 import { Calendar, MapPin, ArrowLeft, Loader2, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/layout/Header';
 import { format, addWeeks, parseISO, isAfter } from 'date-fns';
 import { cn } from '../lib/utils';
 
@@ -48,9 +47,9 @@ export default function Schedule() {
   const allSchedule = registrations.flatMap(r => generateSchedule(r)).sort((a, b) => a.date.getTime() - b.date.getTime());
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Header />
-      <main className="container mx-auto px-4 md:px-6 pt-24 pb-20 max-w-2xl">
+    <div className="min-h-screen">
+      
+      <main className="container mx-auto space-y-8">
         <div className="space-y-8">
           <header className="flex items-center gap-4">
             <button onClick={() => navigate('/dashboard')} className="p-2 bg-white rounded-xl shadow-sm text-slate-500 hover:text-blue-600 transition-colors">

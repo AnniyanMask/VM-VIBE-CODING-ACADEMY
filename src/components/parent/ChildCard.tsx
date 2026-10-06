@@ -1,5 +1,5 @@
 import { type Registration } from '../../lib/supabase';
-import { User, CheckCircle2, Clock, CreditCard, ChevronRight, ExternalLink } from 'lucide-react';
+import { User, CheckCircle2, Clock, CreditCard, ChevronRight, ExternalLink, Upload } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useNavigate } from 'react-router-dom';
 
@@ -42,7 +42,7 @@ export default function ChildCard({ registration, amountDue }: Props) {
             </div>
           </div>
           <button 
-            onClick={() => navigate(`/children`)}
+            onClick={() => navigate(`/dashboard/children`)}
             className="p-2 bg-slate-50 rounded-xl text-slate-400 hover:text-blue-600 transition-colors"
           >
             <ChevronRight className="w-5 h-5" />
@@ -113,8 +113,17 @@ export default function ChildCard({ registration, amountDue }: Props) {
               Join
             </a>
           )}
+          {amountDue !== undefined && amountDue > 0 && (
+            <button 
+              onClick={() => navigate('/dashboard/payments')}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 text-white rounded-lg font-bold text-[10px] uppercase tracking-wider hover:bg-amber-600 transition-all shadow-md shadow-amber-200"
+            >
+              <Upload className="w-3 h-3" />
+              Upload Slip
+            </button>
+          )}
           <button 
-            onClick={() => navigate('/schedule')}
+            onClick={() => navigate('/dashboard/schedule')}
             className="text-xs font-bold text-blue-600 hover:underline"
           >
             View Schedule

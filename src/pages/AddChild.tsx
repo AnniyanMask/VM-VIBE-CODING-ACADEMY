@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/layout/Header';
 import ChildForm from '../components/parent/ChildForm';
 import { ArrowLeft } from 'lucide-react';
 
@@ -26,9 +25,8 @@ export default function AddChild() {
   if (loading || !userId) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Header />
-      <main className="container mx-auto px-4 md:px-6 pt-32 pb-20">
+    <div className="min-h-screen">
+      <main className="container mx-auto space-y-8">
         <div className="max-w-2xl mx-auto space-y-8">
           <button 
             onClick={() => navigate('/dashboard')}
