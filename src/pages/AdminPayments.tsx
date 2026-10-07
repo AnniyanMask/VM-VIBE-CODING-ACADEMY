@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase, type Payment, type PaymentSchedule } from '../lib/supabase';
-import { FileText, CheckCircle2, XCircle, AlertCircle, Loader2, ExternalLink, RefreshCw, DollarSign, Calendar, Search, CreditCard } from 'lucide-react';
+import { FileText, CheckCircle2, XCircle, AlertCircle, Loader2, ExternalLink, RefreshCw, DollarSign, Calendar, Search, CreditCard, Gift } from 'lucide-react';
 import { cn } from '../lib/utils';
 import ConfirmDialog from '../components/admin/ConfirmDialog';
 
@@ -25,7 +25,7 @@ export default function AdminPayments() {
       setLoading(true);
       const { data, error } = await supabase
         .from('payment_schedules')
-        .select('*, profiles:parent_id(full_name, email), payments(*), registrations:registration_id(student_name)')
+        .select('*, profiles:parent_id(full_name, email), payments(*), registrations:registration_id(student_name, status)')
         .order('due_date', { ascending: true });
 
       if (error) throw error;
@@ -94,6 +94,19 @@ export default function AdminPayments() {
         .eq('id', paymentId);
 
       if (error) throw error;
+
+      // Notify parent
+      const payment = schedules.flatMap(s => s.payments || []).find(p => p.id === paymentId);
+      if (payment) {
+        await supabase.from('notifications').insert({
+          user_id: payment.parent_id,
+          title: status === 'verified' ? 'Payment Verified' : 'Payment Slip Rejected',
+          content: status === 'verified' 
+            ? 'Your payment slip has been verified. Thank you!' 
+            : 'Your payment slip was rejected. Please check the remarks and re-upload.',
+          type: status === 'verified' ? 'success' : 'alert'
+        });
+      }
 
       // If payment is verified, mark schedule as paid
       if (status === 'verified' && payment_schedule_id) {
@@ -176,7 +189,15 @@ export default function AdminPayments() {
                       </div>
                       <div>
                         <h3 className="text-lg font-bold text-slate-900">{schedule.profiles?.full_name}</h3>
-                        <p className="text-xs text-slate-500">{schedule.profiles?.email}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs text-slate-500">{schedule.profiles?.email}</p>
+                          <span className="text-slate-300">•</span>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            Reg: <span className={cn(
+                              schedule.registrations?.status === 'approved' ? "text-emerald-500" : "text-amber-500"
+                            )}>{schedule.registrations?.status || 'N/A'}</span>
+                          </p>
+                        </div>
                       </div>
                     </div>
                     <span className={cn(
@@ -211,6 +232,12 @@ export default function AdminPayments() {
                             </button>
                           )}
                         </div>
+                        {schedule.internal_notes && (
+                          <p className="text-[9px] font-bold text-indigo-600 uppercase tracking-widest mt-0.5 flex items-center gap-1">
+                            <Gift className="w-2.5 h-2.5" />
+                            {schedule.internal_notes}
+                          </p>
+                        )}
                         {(schedule as any).registrations?.discount_amount > 0 && (
                           <p className="text-[9px] font-bold text-amber-600 uppercase tracking-widest mt-0.5">
                             Reg. Discount RM {(schedule as any).registrations?.discount_amount || 0}
@@ -331,7 +358,16 @@ export default function AdminPayments() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">New Amount Due (RM)</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center justify-between">
+                    New Amount Due (RM)
+                    <button 
+                      type="button"
+                      onClick={() => setDiscountValue(Math.max(0, (discountingSchedule?.amount || 0) - 50))}
+                      className="text-[8px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase tracking-widest hover:bg-blue-100"
+                    >
+                      Quick -RM50
+                    </button>
+                  </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">RM</span>
                     <input 

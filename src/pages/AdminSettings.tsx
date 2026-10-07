@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { 
-  Settings, Check, X, RefreshCw, Loader2, Save, AlertCircle, Phone, Mail, MapPin, Globe, Share2, MessageSquare, List, DollarSign
+  Settings, Check, X, RefreshCw, Loader2, Save, AlertCircle, Phone, Mail, MapPin, Globe, Share2, MessageSquare, List, DollarSign, Gift
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
@@ -44,6 +44,7 @@ export default function AdminSettings() {
     if (item.key === 'lead_sources') return `${item.value?.length || 0} active sources`;
     if (item.key === 'registration_control') return `Status: ${item.value?.status || 'open'}`;
     if (item.key === 'message_templates') return `${Object.keys(item.value || {}).length} templates defined`;
+    if (item.key === 'referral_program') return `Reward: RM ${item.value?.reward_amount || 0} (${item.value?.is_active ? 'Active' : 'Inactive'})`;
     return `Last sync: ${new Date(item.updated_at).toLocaleDateString()}`;
   };
 
@@ -129,6 +130,7 @@ export default function AdminSettings() {
             if (item.key === 'lead_sources') Icon = List;
             if (item.key === 'registration_control') Icon = Globe;
             if (item.key === 'message_templates') Icon = MessageSquare;
+            if (item.key === 'referral_program') Icon = Gift;
 
             // Hide the old bank_info key if it exists, as we migrated to table
             if (item.key === 'bank_info') return null;
@@ -311,8 +313,63 @@ export default function AdminSettings() {
                 </div>
               )}
 
+              {editingId === 'referral_program' && (
+                <div className="space-y-8">
+                  <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100 flex gap-3">
+                    <Gift className="w-5 h-5 text-indigo-600 shrink-0" />
+                    <p className="text-xs text-indigo-700 font-medium leading-relaxed">
+                      Configure the reward amount for successful referrals. Both the referrer and the new parent will receive this amount as a discount.
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-6">
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Reward Amount (RM)</label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">RM</span>
+                          <input 
+                            type="number"
+                            className="w-full p-4 pl-12 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-700"
+                            value={formData.value.reward_amount || 0}
+                            onChange={e => setFormData({ ...formData, value: { ...formData.value, reward_amount: parseFloat(e.target.value) || 0 } })}
+                          />
+                        </div>
+                     </div>
+
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Program Status</label>
+                        <div className="flex bg-slate-50 p-1 border border-slate-100 rounded-2xl">
+                          {[true, false].map((active) => (
+                            <button
+                              key={String(active)}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, value: { ...formData.value, is_active: active } })}
+                              className={cn(
+                                "flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                                formData.value.is_active === active ? "bg-slate-900 text-white shadow-lg shadow-slate-200" : "text-slate-400 hover:text-slate-900"
+                              )}
+                            >
+                              {active ? 'Active' : 'Disabled'}
+                            </button>
+                          ))}
+                        </div>
+                     </div>
+
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Description</label>
+                        <textarea 
+                          className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-700"
+                          rows={3}
+                          value={formData.value.description || ''}
+                          onChange={e => setFormData({ ...formData, value: { ...formData.value, description: e.target.value } })}
+                        />
+                     </div>
+                  </div>
+                </div>
+              )}
+
               {/* Catch-all for unknown setting keys */}
-              {!['contact', 'lead_sources', 'registration_control', 'message_templates'].includes(editingId || '') && (
+              {!['contact', 'lead_sources', 'registration_control', 'message_templates', 'referral_program'].includes(editingId || '') && (
                 <div className="space-y-2">
                   <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Structured JSON Value</label>
                   <textarea 

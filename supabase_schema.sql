@@ -618,13 +618,21 @@ CREATE TRIGGER on_profile_update BEFORE UPDATE ON public.profiles FOR EACH ROW E
 -- Auth Trigger: Create profile on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  ref_by UUID;
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name, role)
+  -- Look up referrer if code provided
+  IF NEW.raw_user_meta_data->>'referral_code' IS NOT NULL THEN
+    SELECT id INTO ref_by FROM public.profiles WHERE referral_code = NEW.raw_user_meta_data->>'referral_code';
+  END IF;
+
+  INSERT INTO public.profiles (id, email, full_name, role, referred_by)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', 'User'),
-    'parent'
+    'parent',
+    ref_by
   );
   RETURN NEW;
 END;

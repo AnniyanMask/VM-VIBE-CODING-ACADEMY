@@ -15,6 +15,8 @@ export type Profile = {
   full_name: string | null;
   phone: string | null;
   role: 'parent' | 'student' | 'admin';
+  referral_code?: string;
+  referred_by?: string | null;
   created_at: string;
 };
 
@@ -119,6 +121,7 @@ export type PaymentPlan = {
   children_count: number;
   effective_from: string | null;
   effective_to: string | null;
+  installment_breakdown: string | null; // e.g. "160, 320"
   sort_order: number;
   is_active: boolean;
   courses?: Course;
@@ -141,6 +144,7 @@ export type Registration = {
   terms_accepted_at: string | null;
   media_consent: boolean;
   internal_notes: string | null;
+  project_url?: string | null;
   created_at: string;
   updated_at: string;
   profiles?: Profile;
@@ -159,10 +163,12 @@ export type PaymentSchedule = {
   due_date: string | null;
   status: 'pending' | 'paid' | 'partially_paid';
   installment_number: number;
+  internal_notes?: string | null;
   created_at: string;
   updated_at: string;
   payments?: Payment[];
   profiles?: Profile;
+  registrations?: Registration;
 };
 
 export type SiblingRequest = {
@@ -281,6 +287,32 @@ export type ConsentLog = {
   ip_address: string | null;
   user_agent: string | null;
   created_at: string;
+};
+
+export type StudentIdea = {
+  id: string;
+  registration_id: string;
+  content: string;
+  instructor_feedback: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type BadgeDefinition = {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string;
+  criteria?: string;
+  created_at: string;
+};
+
+export type StudentBadge = {
+  id: string;
+  registration_id: string;
+  badge_id: string;
+  awarded_at: string;
+  badge?: BadgeDefinition;
 };
 
 export async function logActivity(params: {

@@ -3,9 +3,11 @@ import { supabase, logActivity } from '../lib/supabase';
 import { 
   Plus, Trash2, Edit3, Check, X, RefreshCw, Loader2, Clock, Calendar, MapPin, Users
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 
 export default function AdminSlots() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
@@ -284,7 +286,16 @@ export default function AdminSlots() {
                       </button>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button onClick={() => handleEdit(item)} className="p-2 bg-slate-50 text-slate-400 rounded-lg hover:text-blue-600 hover:bg-blue-50 transition-all"><Edit3 className="w-4 h-4" /></button>
+                      <div className="flex justify-end gap-2">
+                        <button 
+                          onClick={() => navigate(`/admin/class-lists?slotId=${item.id}`)}
+                          className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all"
+                          title="View Student List"
+                        >
+                          <Users className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleEdit(item)} className="p-2 bg-slate-50 text-slate-400 rounded-lg hover:text-blue-600 hover:bg-blue-50 transition-all"><Edit3 className="w-4 h-4" /></button>
+                      </div>
                     </td>
                   </tr>
                 ))}

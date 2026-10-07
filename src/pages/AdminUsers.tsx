@@ -21,9 +21,23 @@ export default function AdminUsers() {
   async function fetchData() {
     try {
       setLoading(true);
-      const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+      // Fetch profiles and counts of referred users
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          referrals:profiles!referred_by(count)
+        `)
+        .order('created_at', { ascending: false });
+        
       if (error) throw error;
-      setData(data || []);
+      
+      const processedData = profiles?.map(p => ({
+        ...p,
+        referral_count: p.referrals?.[0]?.count || 0
+      })) || [];
+
+      setData(processedData);
     } catch (err: any) {
       alert(`Error fetching users: ${err.message}`);
     } finally {
@@ -48,7 +62,9 @@ export default function AdminUsers() {
       const { error } = await supabase.from('profiles').update({
         full_name: formData.full_name,
         phone: formData.phone,
-        role: formData.role
+        role: formData.role,
+        referral_code: formData.referral_code,
+        referred_by: formData.referred_by
       }).eq('id', editingId);
       
       if (error) throw error;
@@ -108,6 +124,7 @@ export default function AdminUsers() {
                 <tr>
                   <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">User Profile</th>
                   <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Role / Contact</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Referrals</th>
                   <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Joined</th>
                   <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                 </tr>
@@ -137,6 +154,12 @@ export default function AdminUsers() {
                           {item.role}
                         </span>
                         <p className="text-xs text-slate-500 flex items-center gap-1.5 font-medium"><Phone className="w-3 h-3" />{item.phone || '-'}</p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{item.referral_code}</p>
+                        <p className="text-xs font-bold text-slate-400">{item.referral_count} Success</p>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -196,6 +219,28 @@ export default function AdminUsers() {
                     <option value="student">Student</option>
                     <option value="admin">Administrator</option>
                   </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Referral Code</label>
+                  <input className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700 uppercase" value={formData.referral_code || ''} onChange={e => setFormData({...formData, referral_code: e.target.value.toUpperCase()})} />
+                </div>
+                
+                <div className="space-y-2 pt-4 border-t border-slate-50">
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1 flex items-center justify-between">
+                    Attributed Referrer
+                    <span className="text-[8px] font-bold text-blue-500 uppercase tracking-widest bg-blue-50 px-1.5 py-0.5 rounded">Manual Overwrite</span>
+                  </label>
+                  <select 
+                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none appearance-none font-bold text-slate-700" 
+                    value={formData.referred_by || ''} 
+                    onChange={e => setFormData({...formData, referred_by: e.target.value || null})}
+                  >
+                    <option value="">No referrer (Direct signup)</option>
+                    {data.filter(u => u.id !== editingId).map(u => (
+                      <option key={u.id} value={u.id}>{u.full_name || u.email} ({u.referral_code})</option>
+                    ))}
+                  </select>
+                  <p className="text-[9px] text-slate-400 italic px-1">Changing this does NOT retroactively apply discounts to existing payments.</p>
                 </div>
               </div>
 

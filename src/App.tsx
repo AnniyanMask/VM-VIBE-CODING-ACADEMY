@@ -26,8 +26,14 @@ import AdminEnquiries from './pages/AdminEnquiries';
 import AdminProgress from './pages/AdminProgress';
 import AdminLogs from './pages/AdminLogs';
 import AdminFAQs from './pages/AdminFAQs';
+import AdminClassLists from './pages/AdminClassLists';
+import AdminSlotUsers from './pages/AdminSlotUsers';
 import AdminTestimonials from './pages/AdminTestimonials';
+import PublicProgress from './pages/PublicProgress';
 import AdminProjects from './pages/AdminProjects';
+import AdminRevenue from './pages/AdminRevenue';
+import AdminIdeas from './pages/AdminIdeas';
+import AdminBadges from './pages/AdminBadges';
 import MyChildren from './pages/MyChildren';
 import Schedule from './pages/Schedule';
 import AttendanceProgress from './pages/AttendanceProgress';
@@ -52,7 +58,6 @@ const AdminRoute = ({ children, role }: { children: React.ReactNode, role: strin
 const ParentRoute = ({ children, profile }: { children: React.ReactNode, profile: Profile | null }) => {
   if (!profile) return <Navigate to="/login" />;
   if (profile.role === 'admin') return <Navigate to="/admin" />;
-  if (profile.role === 'student') return <Navigate to="/dashboard" />; // Student dashboard is direct
   return <ParentLayout>{children}</ParentLayout>;
 };
 
@@ -102,21 +107,70 @@ export default function App() {
 
             // 3. Create Payment Schedule
             if (selectedPlan) {
+              // Get dynamic referral amount from settings
+              const { data: refSettings } = await supabase
+                .from('site_settings')
+                .select('value')
+                .eq('key', 'referral_program')
+                .maybeSingle();
+              
+              const rewardAmount = refSettings?.value?.is_active ? (refSettings.value.reward_amount || 50) : 0;
+              const referralDiscount = (profileData.referred_by && rewardAmount > 0) ? rewardAmount : 0;
+
               const scheduleEntries = [];
               for (let i = 0; i < selectedPlan.installment_count; i++) {
                 const dueDate = new Date();
                 dueDate.setMonth(dueDate.getMonth() + i);
+                
+                let amount = selectedPlan.fee / selectedPlan.installment_count;
+                // Apply discount to first installment if referred
+                if (i === 0 && referralDiscount > 0) {
+                  amount = Math.max(0, amount - referralDiscount);
+                }
+
                 scheduleEntries.push({
                   parent_id: session.user.id,
-                  registration_id: regData ? regData[0].id : null, // Link to first child or handle differently
+                  registration_id: regData ? regData[0].id : null,
                   group_id: groupId,
-                  amount: selectedPlan.fee / selectedPlan.installment_count,
+                  amount: amount,
                   due_date: dueDate.toISOString().split('T')[0],
                   installment_number: i + 1,
-                  status: 'pending'
+                  status: 'pending',
+                  internal_notes: referralDiscount > 0 ? `Referral discount RM${referralDiscount} applied.` : null
                 });
               }
               await supabase.from('payment_schedules').insert(scheduleEntries);
+
+              // 4. Also reward the referrer
+              if (profileData.referred_by && rewardAmount > 0) {
+                // Find referrer's next pending installment
+                const { data: refSched } = await supabase
+                  .from('payment_schedules')
+                  .select('*')
+                  .eq('parent_id', profileData.referred_by)
+                  .eq('status', 'pending')
+                  .order('due_date', { ascending: true })
+                  .limit(1)
+                  .maybeSingle();
+
+                if (refSched) {
+                  await supabase
+                    .from('payment_schedules')
+                    .update({ 
+                      amount: Math.max(0, refSched.amount - rewardAmount),
+                      internal_notes: `Referral reward from ${profileData.full_name} signup.`
+                    })
+                    .eq('id', refSched.id);
+                  
+                  // Notify referrer
+                  await supabase.from('notifications').insert({
+                    user_id: profileData.referred_by,
+                    title: 'Referral Reward!',
+                    content: `You received a RM ${rewardAmount} discount because ${profileData.full_name} joined!`,
+                    type: 'success'
+                  });
+                }
+              }
             }
 
             // Clean up
@@ -155,11 +209,25 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={profile ? <Navigate to="/dashboard" /> : <Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/share/:registrationId" element={<PublicProgress />} />
         <Route path="/admin-login" element={<AdminLogin />} />
+        
+        {/* Main Dashboard Router */}
+        <Route path="/dashboard" element={
+          !profile ? <Navigate to="/login" /> :
+          profile.role === 'admin' ? <Navigate to="/admin" /> :
+          profile.role === 'student' ? <StudentDashboard /> :
+          <ParentRoute profile={profile}><ParentDashboard /></ParentRoute>
+        } />
         
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminRoute role={profile?.role}><AdminDashboard /></AdminRoute>} />
         <Route path="/admin/registrations" element={<AdminRoute role={profile?.role}><AdminRegistrations /></AdminRoute>} />
+        <Route path="/admin/class-lists" element={<AdminRoute role={profile?.role}><AdminClassLists /></AdminRoute>} />
+        <Route path="/admin/slot-users" element={<AdminRoute role={profile?.role}><AdminSlotUsers /></AdminRoute>} />
+        <Route path="/admin/revenue" element={<AdminRoute role={profile?.role}><AdminRevenue /></AdminRoute>} />
+        <Route path="/admin/ideas" element={<AdminRoute role={profile?.role}><AdminIdeas /></AdminRoute>} />
+        <Route path="/admin/badges" element={<AdminRoute role={profile?.role}><AdminBadges /></AdminRoute>} />
         <Route path="/admin/progress" element={<AdminRoute role={profile?.role}><AdminProgress /></AdminRoute>} />
         <Route path="/admin/payments" element={<AdminRoute role={profile?.role}><AdminPayments /></AdminRoute>} />
         <Route path="/admin/siblings" element={<AdminRoute role={profile?.role}><AdminSiblingRequests /></AdminRoute>} />
@@ -180,7 +248,6 @@ export default function App() {
         <Route path="/admin/logs" element={<AdminRoute role={profile?.role}><AdminLogs /></AdminRoute>} />
 
         {/* Parent Routes */}
-        <Route path="/dashboard" element={<ParentRoute profile={profile}><ParentDashboard /></ParentRoute>} />
         <Route path="/dashboard/payments" element={<ParentRoute profile={profile}><ParentPayments /></ParentRoute>} />
         <Route path="/dashboard/children" element={<ParentRoute profile={profile}><MyChildren /></ParentRoute>} />
         <Route path="/dashboard/schedule" element={<ParentRoute profile={profile}><Schedule /></ParentRoute>} />

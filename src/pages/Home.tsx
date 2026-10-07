@@ -1,6 +1,7 @@
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import Hero from '../components/home/Hero';
+import SeatUrgencyTicker from '../components/home/SeatUrgencyTicker';
 import TrustStrip from '../components/home/TrustStrip';
 import Benefits from '../components/home/Benefits';
 import Projects from '../components/home/Projects';
@@ -20,6 +21,7 @@ export default function Home() {
       <Header />
       <main>
         <Hero />
+        <SeatUrgencyTicker />
         <TrustStrip />
         <Benefits />
         <Projects />

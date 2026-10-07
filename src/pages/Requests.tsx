@@ -67,7 +67,7 @@ export default function Requests() {
               </button>
               <div>
                 <h1 className="text-2xl font-black text-slate-900 tracking-tight">Requests</h1>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Support & Changes</p>
+               
               </div>
             </div>
             <button 

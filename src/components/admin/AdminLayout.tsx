@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { 
   LayoutDashboard, Settings, FileText, BookOpen, Users, 
   CreditCard, Clock, ListChecks, HelpCircle, Megaphone, 
-  Menu, X, LogOut, ChevronRight, UserCircle, MessageSquare,
+  Menu, X, LogOut, ChevronRight, UserCircle, MessageSquare, TrendingUp, Lightbulb, Award,
   History, GraduationCap, DollarSign, UserPlus, Baby, ShieldCheck, Star, Sparkles, Landmark, Target
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -31,7 +31,11 @@ const menuSections: MenuSection[] = [
     title: 'STUDENTS',
     items: [
       { icon: ListChecks, label: 'Registrations', href: '/admin/registrations' },
+      { icon: Users, label: 'Class Lists', href: '/admin/class-lists' },
+      { icon: UserCircle, label: 'Slot-based User List', href: '/admin/slot-users' },
       { icon: Target, label: 'Progress Tracking', href: '/admin/progress' },
+      { icon: Lightbulb, label: 'Idea Sandbox', href: '/admin/ideas' },
+      { icon: Award, label: 'Achievement Badges', href: '/admin/badges' },
       { icon: HelpCircle, label: 'Enquiries', href: '/admin/enquiries' },
       { icon: UserPlus, label: 'Sibling Requests', href: '/admin/siblings' },
       { icon: MessageSquare, label: 'Parent Requests', href: '/admin/requests' },
@@ -42,6 +46,7 @@ const menuSections: MenuSection[] = [
     title: 'MONEY',
     items: [
       { icon: CreditCard, label: 'Payments', href: '/admin/payments' },
+      { icon: TrendingUp, label: 'Revenue Forecasting', href: '/admin/revenue' },
       { icon: DollarSign, label: 'Pricing Plans', href: '/admin/pricing' },
       { icon: Landmark, label: 'Bank Accounts', href: '/admin/payment-accounts' },
     ]

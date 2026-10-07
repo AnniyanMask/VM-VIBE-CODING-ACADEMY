@@ -79,6 +79,19 @@ export default function Pricing() {
                     <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">/ {plan.children_count > 1 ? `${plan.children_count} children` : 'child'}</span>
                   </div>
 
+                  {plan.installment_count > 1 && (
+                    <div className="mb-6 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Installment Plan</p>
+                      <p className="text-sm font-bold text-blue-600">
+                        {plan.installment_breakdown ? (
+                          `RM ${plan.installment_breakdown.replace(/,/g, ' + RM')}`
+                        ) : (
+                          `${plan.installment_count} monthly payments`
+                        )}
+                      </p>
+                    </div>
+                  )}
+
                   <ul className="space-y-3 mb-8 flex-1">
                     <li className="flex items-center gap-3 text-slate-600 text-xs font-medium">
                       <div className="w-5 h-5 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0 text-[10px]">✓</div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase, type PaymentSchedule, type Payment } from '../lib/supabase';
-import { FileText, CheckCircle2, AlertCircle, Clock, Loader2, ArrowLeft, MessageSquare, CreditCard, Copy, Check } from 'lucide-react';
+import { FileText, CheckCircle2, AlertCircle, Clock, Loader2, ArrowLeft, MessageSquare, CreditCard, Copy, Check, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { CustomUploadIcon } from '../components/icons/CustomUploadIcon';
@@ -200,10 +200,20 @@ export default function ParentPayments() {
             </div>
           ) : schedules.length > 0 ? (
             <div className="space-y-6">
-              <div className="flex justify-between items-end px-2">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-1">
                 <h2 className="text-xl font-bold text-slate-900">Your Installments</h2>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Upload Slips Below</span>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Upload Slips Below</p>
               </div>
+              <button 
+                onClick={fetchData}
+                disabled={loading}
+                className="p-3 bg-white border border-slate-100 rounded-2xl text-slate-500 hover:text-blue-600 transition-all shadow-sm flex items-center gap-2 font-bold text-[10px] uppercase tracking-widest"
+              >
+                <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
+                Refresh
+              </button>
+            </div>
               <div className="grid grid-cols-1 gap-6">
               {schedules.map((schedule) => (
                 <div key={schedule.id} className={cn(

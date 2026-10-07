@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase, type Registration, type AgeGroup, type ClassSlot, type PaymentPlan } from '../lib/supabase';
-import { User, School, BookOpen, Edit3, Plus, ArrowLeft, Loader2, Save, X, AlertCircle } from 'lucide-react';
+import { User, School, BookOpen, Edit3, Plus, ArrowLeft, Loader2, Save, X, AlertCircle, Rocket, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { calculateAge, cn } from '../lib/utils';
 
@@ -34,7 +34,8 @@ export default function MyChildren() {
     setEditingId(reg.id);
     setFormData({
       school: reg.school,
-      experience_level: reg.experience_level
+      experience_level: reg.experience_level,
+      project_url: reg.project_url
     });
   };
 
@@ -113,7 +114,7 @@ export default function MyChildren() {
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Experience Level</label>
                       {editingId === reg.id ? (
                         <select 
-                          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+                          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium"
                           value={formData.experience_level || ''}
                           onChange={e => setFormData({ ...formData, experience_level: e.target.value })}
                         >
@@ -125,6 +126,33 @@ export default function MyChildren() {
                         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-3">
                           <BookOpen className="w-4 h-4 text-blue-500" />
                           <span className="text-sm font-bold text-slate-700">{reg.experience_level || 'Beginner'}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center justify-between">
+                        Project URL
+                        <span className="text-[9px] font-bold text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded uppercase tracking-tighter">Live Demo</span>
+                      </label>
+                      {editingId === reg.id ? (
+                        <input 
+                          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium"
+                          placeholder="https://your-child-app.vercel.app"
+                          value={formData.project_url || ''}
+                          onChange={e => setFormData({ ...formData, project_url: e.target.value })}
+                        />
+                      ) : (
+                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <Rocket className="w-4 h-4 text-blue-500" />
+                            <span className="text-sm font-bold text-slate-700 truncate max-w-[200px] md:max-w-none">{reg.project_url || 'No project URL set yet'}</span>
+                          </div>
+                          {reg.project_url && (
+                            <a href={reg.project_url} target="_blank" className="p-2 bg-white rounded-lg text-blue-600 hover:scale-105 transition-all shadow-sm">
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                          )}
                         </div>
                       )}
                     </div>

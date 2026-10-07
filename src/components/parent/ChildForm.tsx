@@ -144,14 +144,24 @@ export default function ChildForm({ parentId, onSuccess, onSkip, enquiryId }: Pr
 
       // 3. Create Payment Schedule
       if (selectedPlan) {
+        const customAmounts = selectedPlan.installment_breakdown 
+          ? selectedPlan.installment_breakdown.split(',').map((s: string) => parseFloat(s.trim())).filter((n: number) => !isNaN(n))
+          : [];
+
         const scheduleEntries = [];
         for (let i = 0; i < selectedPlan.installment_count; i++) {
           const dueDate = new Date();
           dueDate.setMonth(dueDate.getMonth() + i);
+          
+          let amount = (selectedPlan.fee * multiplier) / selectedPlan.installment_count;
+          if (customAmounts.length > i) {
+            amount = customAmounts[i] * (selectedPlan.children_count === 1 ? students.length : 1);
+          }
+
           scheduleEntries.push({
             parent_id: parentId,
             group_id: groupId,
-            amount: (selectedPlan.fee * multiplier) / selectedPlan.installment_count,
+            amount: amount,
             due_date: dueDate.toISOString().split('T')[0],
             installment_number: i + 1,
             status: 'pending'
@@ -302,7 +312,15 @@ export default function ChildForm({ parentId, onSuccess, onSkip, enquiryId }: Pr
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-black text-blue-600">RM {plan.fee}</p>
-                    {plan.installment_count > 1 && <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{plan.installment_count} Installments</p>}
+                    {plan.installment_count > 1 && (
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        {plan.installment_breakdown ? (
+                          `RM ${plan.installment_breakdown.replace(/,/g, ' + RM')}`
+                        ) : (
+                          `${plan.installment_count} Installments`
+                        )}
+                      </p>
+                    )}
                   </div>
                 </div>
                 {plan.children_count === students.length && students.length > 1 && (

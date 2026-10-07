@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { User, Mail, Phone, ArrowRight, ArrowLeft, Loader2, MessageSquare, XCircle, CreditCard, CheckCircle2 } from 'lucide-react';
+import { User, Mail, Phone, ArrowRight, ArrowLeft, Loader2, MessageSquare, XCircle, CreditCard, CheckCircle2, Gift } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import ChildForm from '../components/parent/ChildForm';
 
@@ -24,6 +24,7 @@ export default function Register() {
     phone: '',
     password: '',
     leadSource: '',
+    referralCode: '',
   });
 
   useEffect(() => {
@@ -80,6 +81,7 @@ export default function Register() {
           data: {
             full_name: parentData.fullName,
             phone: parentData.phone,
+            referral_code: parentData.referralCode,
           }
         }
       });
@@ -227,6 +229,23 @@ export default function Register() {
                     value={parentData.password}
                     onChange={e => setParentData({...parentData, password: e.target.value})}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700 ml-1 flex items-center justify-between">
+                    Referral Code
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Optional</span>
+                  </label>
+                  <div className="relative">
+                    <Gift className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                    <input
+                      type="text"
+                      className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium uppercase tracking-widest"
+                      placeholder="e.g. 5D8F2A1B"
+                      value={parentData.referralCode}
+                      onChange={e => setParentData({...parentData, referralCode: e.target.value.toUpperCase()})}
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">

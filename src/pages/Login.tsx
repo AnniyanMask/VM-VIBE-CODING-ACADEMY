@@ -59,7 +59,7 @@ export default function Login() {
 
           <div className="space-y-2 mb-8">
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Welcome back</h1>
-            <p className="text-slate-500">Sign in to manage your registrations and schedule.</p>
+            <p className="text-slate-500">Sign in to access your portal.</p>
           </div>
 
           {error && (
